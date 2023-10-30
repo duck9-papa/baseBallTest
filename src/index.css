@@ -11,3 +11,51 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.fixBar{
+  position: fixed;
+  width: 200px;
+  height: 100%;
+  background-color: aqua;
+  right: 0;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.print{
+  break-after: page;
+
+
+} 
+
+ @page {
+  size: A4;
+  margin: 20mm;  
+  margin-top: 100px;
+}
+@media print {
+  
+  .print-show { display:block;}
+  .print-hide {display:none;}
+  @page {margin:1.3cm 1.3cm}
+  @page :first {margin:0 1.3cm}
+  body {
+/*     
+    margin:1.3cm auto;
+  margin-top: 300px;
+  margin-left: 50px;
+  background-color: red; */
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* scale: 1.5; */
+  /* rotate: 90deg; */
+  }
+}

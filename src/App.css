@@ -36,3 +36,27 @@
     transform: rotate(360deg);
   }
 }
+
+.leaflet-container {
+  margin-top: 65px;
+  width: 1000px;
+  height: 500px;
+  background: transparent !important;
+}
+
+.navbar {
+  box-shadow: 3px 3px 5px #0ab3e1;
+  opacity: 0.8;
+  font-family: "KoHo", sans-serif;
+}
+
+.map-coat{
+  width: 600px;
+  height: 300px;
+  background-color: yellow;
+}
+
+.map-container {
+  width: 1000px;
+  height: 500;
+}
