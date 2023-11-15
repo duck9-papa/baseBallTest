@@ -1,4 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  VictoryPolarAxis,
+  VictoryChart,
+  VictoryBar,
+  VictoryLine,
+  VictoryScatter,
+  VictoryGroup,
+  VictoryAxis,
+  VictoryLabel,
+  VictoryPie,
+} from "victory";
+import { scatterData } from "./Data.js";
+
 import L from "leaflet";
 import HeatmapLayer from "react-leaflet-heatmap-layer";
 import { Map, ImageOverlay } from "react-leaflet";
@@ -8,6 +21,12 @@ import "leaflet/dist/leaflet.css";
 import { styled, keyframes } from "styled-components";
 
 import { FaVolleyballBall } from "react-icons/fa";
+import axios from "axios";
+
+import ThreeObject from "./Three";
+import { Canvas } from "@react-three/fiber";
+import Coat3D from "./Coat3D.jsx";
+import MyElement3D from "./MyElement3D.jsx";
 
 const showView = keyframes`
 from{
@@ -21,19 +40,25 @@ to{
 const moveServe = (locationX, locationY, targetX, targetY) => keyframes`
 
 0%{scale:1}
+
 10%{
   scale:0.5
-}20%{scale:1}
+}
+20%{scale:1}
 30%{
   scale:0.5
-}40%{scale:1}
+}
+40%{scale:1}
+
 70%{
   left: ${locationX}%;
   top: ${locationY}%;
 }
+
 100%{
   left: ${targetX}%;
   top: ${targetY}%;
+  
 }
 
 `;
@@ -128,7 +153,6 @@ const InfoContainer = styled.div`
   background-color: white;
   border-radius: 12px;
   font-size: 12px;
-
   animation-name: ${p => showView};
   animation-duration: 0.5s;
   animation-timing-function: ease-out;
@@ -153,9 +177,20 @@ const App = () => {
   const [play, setPlay] = useState(false);
   const [count, setCount] = useState(0);
   const [view, setView] = useState(false);
-  const [ctx, setCtx] = useState(null);
+  const [heatmapPlay, setHeatmapPlay] = useState(false);
+  const [heatmapCount, setHeatmapCount] = useState(0);
+
   const [ballTeam, setBallTeam] = useState(null);
   const [spread, setSpread] = useState(false);
+  const [dummy, setDummy] = useState([]);
+
+  const chartCategory = [
+    { code: "offenSuccessRate", codeName: "공격 성공률" },
+    { code: "backSuccessRate", codeName: "후위 성공률" },
+    { code: "cquickSuccessRate", codeName: "퀵오픈 성공률" },
+    { code: "openSuccessRate", codeName: "오픈 성공률" },
+    { code: "serveSuccessRate", codeName: "서브 성공률" },
+  ];
 
   const location = [
     { locationX: 10, locationY: 20, action: "serve" },
@@ -164,7 +199,6 @@ const App = () => {
     { locationX: 60, locationY: 50, action: "receieve" },
     { locationX: 30, locationY: 60, action: "receieve" },
     { locationX: 40, locationY: 20, action: "receieve" },
-    { locationX: 80, locationY: 90, action: "receieve" },
     { locationX: 80, locationY: 90, action: "receieve" },
   ];
 
@@ -184,7 +218,7 @@ const App = () => {
           count === 0 ? 3000 : 2000
         );
       }
-      if (count === location.length - 2) {
+      if (count === location.length - 1) {
         setView(true);
       }
     }
@@ -207,10 +241,119 @@ const App = () => {
     }
   }, [count, play]);
 
-  const canvasRef = useRef();
+  useEffect(() => {
+    const indistats = async () => {
+      const data = await axios
+        .post("http://223.130.136.167:8080/api/stats/selectindistatslist", {
+          indiStatsId: { gameCode: "2324PL2M003" },
+        })
+        .then(r => r.data.data);
+
+      setDummy(data);
+    };
+    indistats();
+  }, []);
+
+  const indistatsData =
+    dummy.find(
+      i =>
+        i?.indiStatsId?.participantName === "마테이" &&
+        i?.indiStatsId?.setNum === 0
+    ) || {};
+
+  const pie = chartCategory.map(i => ({
+    label: i.codeName,
+    value: indistatsData[i.code],
+  }));
+
+  // const lineObject = {1:10,2:}
+
+  const colorScale = [
+    "#056AA4",
+    "#999273",
+    "#FF3636",
+    "#FEC669",
+    "#102A86",
+    "#C0CC66",
+    "pink",
+    "yellow",
+  ];
+
+  const multiData = [
+    {
+      data: [
+        { label: "총 득점", value: 1 },
+        { label: "공격 효율", value: 4 },
+        { label: "서브 효율", value: 2 },
+        { label: "세트 효율", value: 5 },
+        { label: "리시브 효율", value: 7 },
+        { label: "디그 효율", value: 6 },
+        { label: "블로킹 효율", value: 2 },
+        { label: "범실 합", value: 4 },
+      ],
+      lineColor: "#FF3636",
+      innerColor: "#FF363633",
+    },
+
+    {
+      data: [
+        { label: "총 득점", value: 5 },
+        { label: "공격 효율", value: 2 },
+        { label: "서브 효율", value: 6 },
+        { label: "세트 효율", value: 2 },
+        { label: "리시브 효율", value: 9 },
+        { label: "디그 효율", value: 10 },
+        { label: "블로킹 효율", value: 6 },
+        { label: "범실 합", value: 4 },
+      ],
+      lineColor: "#056AA4",
+      innerColor: "#056AA433",
+    },
+  ];
+
+  const points = useMemo(() => {
+    const scatterData = [];
+    for (let i = 0; i < 50; i++) {
+      const x = Math.random() * 10;
+      const y = Math.random() * 10;
+      let data = {
+        x,
+        y,
+        select: Math.random() * 10 > 9,
+      };
+      scatterData.push(data);
+    }
+    return scatterData;
+  }, []);
+
+  const barDatas = useMemo(() => {
+    let arr = [];
+    for (let i = 1; i <= 100; i++) {
+      arr.push(i);
+    }
+    return arr;
+  }, []);
+
+  useEffect(() => {
+    if (heatmapPlay && heatmapCount < 11) {
+      setTimeout(() => {
+        setHeatmapCount(pre => pre + 1);
+      }, 100);
+    }
+  }, [heatmapCount, heatmapPlay]);
+
+  console.log(heatmapCount);
+
+  // const heatmapZoom = useMemo(() => {
+  //   return 5 - 0.5 * heatmapCount;
+  // }, [heatmapCount]);
 
   return (
     <>
+      {/* <Canvas>
+        <Coat3D />
+        <MyElement3D />
+      </Canvas> */}
       <div
         style={{
           width: "100%",
@@ -218,12 +361,22 @@ const App = () => {
           justifyContent: "center",
           position: "relative",
         }}>
-        <button
-          style={{ width: "50px", height: "20px", margin: "auto 0" }}
-          onClick={() => setData(dataPoints)}>
-          button
-        </button>
-        {/* <Navbar /> */}
+        <Button
+          onClick={() => {
+            setHeatmapPlay(true);
+            setData(dataPoints);
+          }}>
+          Button
+        </Button>
+        <Button
+          onClick={() => {
+            setHeatmapCount(0);
+            setHeatmapPlay(false);
+            setData([]);
+          }}>
+          reset
+        </Button>
+
         <Map
           className="map-container"
           crs={L.CRS.Simple}
@@ -241,9 +394,9 @@ const App = () => {
             points={data}
             longitudeExtractor={m => m.coordinates[0]}
             latitudeExtractor={m => m.coordinates[1]}
-            intensityExtractor={m => 3}
+            intensityExtractor={m => heatmapCount}
           />
-          {/* <div className="map-coat">d</div> */}
+
           <ImageOverlay url={require("./히트맵코트.png")} bounds={bounds} />
         </Map>
       </div>
@@ -254,13 +407,8 @@ const App = () => {
           justifyContent: "center",
           position: "relative",
         }}>
-        <button
-          style={{ width: "50px", height: "20px", margin: "auto 0" }}
-          onClick={() => setPlay(!play)}>
-          play
-        </button>
-        <button
-          style={{ width: "50px", height: "20px", margin: "auto 0" }}
+        <Button onClick={() => setPlay(!play)}>play</Button>
+        <Button
           onClick={() => {
             setPlay(false);
             setCount(0);
@@ -268,18 +416,13 @@ const App = () => {
             setSpread(false);
           }}>
           reset
-        </button>
+        </Button>
         <div
           style={{
             width: "1050px",
             height: "450px",
             position: "relative",
           }}>
-          <canvas
-            ref={canvasRef}
-            style={{ position: "absolute" }}
-            width={1050}
-            height={450}></canvas>
           <BallContainer
             play={play}
             action={location[count]?.action}
@@ -312,7 +455,368 @@ const App = () => {
           <img draggable="false" src="/images/히트맵코트.png" alt="base" />
         </div>
       </div>
+      {/* <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          position: "relative",
+        }}>
+        <div style={{ width: "500px" }}>
+          <CommonMultiCircleChart dataList={multiData} />
+        </div>
+
+        <div style={{ backgroundColor: "#F3F6F8" }}>
+          <CommonSimilarityChart
+            data={pie}
+            colorScale={colorScale}
+            maxima={100}
+          />
+        </div>
+        <div>
+          {
+            <CommonScatterChart
+              dataList={scatterData}
+              // yLabel={"yLabel"}
+              // xLabel={"xLabel"}
+            />
+          }
+        </div>
+      </div>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          position: "relative",
+          // backgroundColor: "#d9d9d9",
+        }}>
+        <CommonCircle value={60} />
+
+        <div>
+          <VictoryChart height={500}>
+            <VictoryAxis
+              domain={{ x: [0, 100] }}
+              tickFormat={() => ""}
+              style={{ axis: { stroke: "none" } }}
+            />
+            <VictoryAxis
+              dependentAxis
+              domain={{ y: [-100, 100] }}
+              style={{ axis: { stroke: "none" } }}
+            />
+            <VictoryBar
+              barWidth={5}
+              data={barDatas}
+              domain={{ x: [0, 100], y: [-100, 100] }}
+              y={d =>
+                d < 90
+                  ? (((d * Math.random()) % 10) % 2) * 50
+                  : -(((d * Math.random()) % 10) % 2) * 10
+              }
+              style={{
+                data: {
+                  fill: ({ datum }) => (datum._y > 0 ? "green" : "red"),
+                },
+              }}
+            />
+          </VictoryChart>
+          <VictoryChart>
+            <VictoryAxis
+              tickFormat={() => ""}
+              dependentAxis
+              style={{ axis: { stroke: "none" } }}
+            />
+
+            <VictoryBar
+              horizontal
+              style={{
+                data: { fill: "#c43a31" },
+              }}
+              labels={({ datum }) => datum.y}
+              data={[
+                { x: "a", y: 2 },
+                { x: "b", y: 2 },
+                { x: "c", y: 3 },
+              ]}
+            />
+            <VictoryAxis
+              style={{
+                ticks: { stroke: "none", size: -120 },
+                tickLabels: { stroke: "white" },
+              }}
+            />
+          </VictoryChart>
+        </div>
+      </div> */}
     </>
   );
 };
+
 export default App;
+
+const CommonCircleChart = ({ data, lineColor, innerColor }) => {
+  const highlightIndex = {};
+  const graphData = data.map((item, index) => {
+    if (item.hightlight) {
+      highlightIndex[index] = true;
+    }
+    return {
+      x: item.label,
+      y: item.value,
+    };
+  });
+
+  return (
+    <VictoryChart polar domain={{ y: [0, 10] }}>
+      <VictoryPolarAxis
+        labelPlacement="vertical"
+        style={{
+          axis: { stroke: "none", fill: "#F3F6F8" },
+          tickLabels: {
+            fontSize: "12px",
+            fontWeight: d => highlightIndex[d.index] && "700",
+          },
+        }}
+      />
+      {graphData.map((_, index) => {
+        const axisAngle = Number((360 / graphData.length) * (index + 1));
+
+        return (
+          <VictoryPolarAxis
+            key={`${index}axisKey`}
+            dependentAxis
+            axisAngle={axisAngle}
+            style={{
+              axis: { stroke: "white", strokeWidth: 4 },
+            }}
+            tickFormat={() => null}
+          />
+        );
+      })}
+      <VictoryLine
+        data={graphData}
+        style={{
+          data: {
+            stroke: lineColor || "#FF3636",
+            fill: innerColor || "#FF363633",
+            strokeWidth: 1,
+          },
+        }}
+      />
+      <VictoryScatter
+        data={graphData}
+        size={3}
+        style={{
+          data: { fill: lineColor || "#FF3636" },
+        }}
+      />
+    </VictoryChart>
+  );
+};
+
+const CommonMultiCircleChart = ({ dataList = [], maxima }) => {
+  const axisData = dataList?.[0]?.data || [];
+
+  return (
+    <VictoryChart polar domain={maxima && { y: [0, maxima] }}>
+      <VictoryPolarAxis
+        labelPlacement="vertical"
+        style={{
+          axis: { stroke: "none", fill: "#F3F6F8" },
+          tickLabels: {
+            fontSize: "12px",
+            // fontWeight: d => highlightIndex[d.index] && "700",
+          },
+        }}
+      />
+      {axisData.map((_, index) => {
+        const axisAngle = Number((360 / axisData.length) * (index + 1));
+
+        return (
+          <VictoryPolarAxis
+            key={`${index}axisKey`}
+            dependentAxis
+            axisAngle={axisAngle}
+            style={{
+              axis: { stroke: "white", strokeWidth: 4 },
+            }}
+            tickFormat={() => null}
+          />
+        );
+      })}
+      {dataList.map((item, index) => {
+        const graphData = item.data.map(i => ({
+          x: i?.label,
+          y: i?.value,
+        }));
+        const lineColor = item.lineColor;
+        const innerColor = item.innerColor;
+
+        return (
+          <VictoryGroup key={`${index}lineKey`}>
+            <VictoryLine
+              data={graphData}
+              style={{
+                data: {
+                  stroke: lineColor || "#FF3636",
+                  fill: innerColor || "#FF363633",
+                  strokeWidth: 1,
+                },
+              }}
+            />
+            <VictoryScatter
+              data={graphData}
+              size={3}
+              style={{
+                data: { fill: lineColor || "#FF3636" },
+              }}
+            />
+          </VictoryGroup>
+        );
+      })}
+    </VictoryChart>
+  );
+};
+
+const CommonSimilarityChart = ({ data, colorScale, maxima }) => {
+  return (
+    <VictoryChart polar domain={maxima && { y: [0, maxima] }}>
+      <VictoryPolarAxis
+        labelPlacement="vertical"
+        style={{ axis: { fill: "white", stroke: "none" } }}
+      />
+
+      <VictoryBar
+        polar
+        data={data.map(i => ({ x: i.label, y: i.value }))}
+        style={{
+          data: {
+            fill: ({ index }) => colorScale[index],
+          },
+        }}
+      />
+      {data.map((_, index) => {
+        const axisAngle = Number((360 / data.length) * (index + 1));
+
+        return (
+          <VictoryPolarAxis
+            key={`${index}axisKey`}
+            dependentAxis
+            axisAngle={axisAngle - 180 / data.length}
+            style={{
+              axis: { stroke: "#F3F6F8", strokeWidth: 3 },
+            }}
+            tickFormat={() => null}
+          />
+        );
+      })}
+    </VictoryChart>
+  );
+};
+
+const CommonScatterChart = ({ dataList, yLabel, xLabel, xDomain, yDomain }) => {
+  const selectPoints = dataList.filter(i => i.select);
+  const commonPoints = dataList.filter(i => !i.select);
+
+  return (
+    <VictoryChart>
+      <VictoryAxis
+        label={xLabel || ""}
+        axisLabelComponent={<VictoryLabel angle={360} dx={200} />}
+        domain={xDomain}
+        style={{ axis: { stroke: "#9A9C9F" } }}
+      />
+      <VictoryAxis
+        dependentAxis
+        domain={yDomain}
+        axisLabelComponent={<VictoryLabel angle={360} dy={-120} />}
+        tickComponent={<VictoryLabel y={20} style={{ stroke: "red" }} />}
+        label={yLabel || ""}
+        style={{ axis: { stroke: "#9A9C9F" } }}
+      />
+      <VictoryGroup>
+        {commonPoints.map((d, i) => (
+          <VictoryScatter
+            key={`${i}commonScatterKey`}
+            size={4}
+            data={[d]}
+            style={{
+              data: { fill: "#D3E5FF" },
+            }}
+          />
+        ))}
+        {selectPoints.map((d, i) => (
+          <VictoryScatter
+            key={`${i}selectPoints`}
+            size={4}
+            data={[d]}
+            style={{
+              data: { fill: d.select },
+            }}
+          />
+        ))}
+      </VictoryGroup>
+    </VictoryChart>
+  );
+};
+
+const CommonCircle = ({ value, color, suffix }) => {
+  const pieData = [
+    { x: 1, y: value || 0 },
+    { x: 2, y: 100 - value || 0 },
+  ];
+
+  return (
+    <div style={{ width: "100px", height: "100px", position: "relative" }}>
+      <VictoryChart width={200} height={200}>
+        <VictoryAxis
+          tickFormat={() => ""}
+          style={{ axis: { stroke: "none" } }}
+        />
+        <VictoryAxis
+          tickFormat={() => ""}
+          dependentAxis
+          style={{ axis: { stroke: "none" } }}
+        />
+        <VictoryPie
+          data={pieData}
+          labels={() => ""}
+          innerRadius={80}
+          colorScale={[color || "red", "#F3F6F8"]}
+          style={{ labels: { fontSize: "60px" } }}
+        />
+      </VictoryChart>
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "50%",
+          translate: "-50% -50%",
+          fontSize: "12px",
+          fontWeight: "700",
+        }}>
+        {value + (suffix || "%")}
+      </div>
+    </div>
+  );
+};
+
+const Button = styled.div`
+  width: 100px;
+  height: 50px;
+  margin: auto 50px;
+  border-radius: 12px;
+  background: #d9d9d9;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+
+  &:hover {
+    opacity: 0.7;
+  }
+`;
