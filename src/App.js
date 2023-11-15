@@ -547,6 +547,7 @@ const App = () => {
           display: "flex",
           justifyContent: "center",
           position: "relative",
+          marginTop: "100px",
         }}>
         <Button onClick={() => setPlay(!play)}>play</Button>
         <Button
