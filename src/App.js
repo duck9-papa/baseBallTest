@@ -10,7 +10,7 @@ import {
   VictoryLabel,
   VictoryPie,
 } from "victory";
-import { scatterData } from "./Data.js";
+import { scatterData, secondDataPoints } from "./Data.js";
 
 import L from "leaflet";
 import HeatmapLayer from "react-leaflet-heatmap-layer";
@@ -174,11 +174,15 @@ var bounds = [
 
 const App = () => {
   const [data, setData] = useState([]);
+  const [secondData, setSecondData] = useState([]);
   const [play, setPlay] = useState(false);
   const [count, setCount] = useState(0);
   const [view, setView] = useState(false);
   const [heatmapPlay, setHeatmapPlay] = useState(false);
   const [heatmapCount, setHeatmapCount] = useState(0);
+
+  const [secondheatmapPlay, secondsetHeatmapPlay] = useState(false);
+  const [secondheatmapCount, secondsetHeatmapCount] = useState(0);
 
   const [ballTeam, setBallTeam] = useState(null);
   const [spread, setSpread] = useState(false);
@@ -193,13 +197,133 @@ const App = () => {
   ];
 
   const location = [
-    { locationX: 10, locationY: 20, action: "serve" },
-    { locationX: 80, locationY: 90, action: "receieve" },
-    { locationX: 70, locationY: 65, action: "receieve" },
-    { locationX: 60, locationY: 50, action: "receieve" },
-    { locationX: 30, locationY: 60, action: "receieve" },
-    { locationX: 40, locationY: 20, action: "receieve" },
-    { locationX: 80, locationY: 90, action: "receieve" },
+    {
+      competitionCode: "2324PL2",
+      action: "serve",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 0,
+      awayScore: 0,
+      teamId: "KRPMEQ01",
+      teamName: "삼성화재",
+      mainAction: "a",
+      locationX: 84.95,
+      locationY: 30.0,
+      createdTime: 1697522445356,
+    },
+    {
+      competitionCode: "2324PL2",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 0,
+      awayScore: 0,
+      teamId: "KRPMAM01",
+      teamName: "우리카드",
+      mainAction: "f",
+      locationX: 24.95,
+      locationY: 26.89,
+      createdTime: 1697522445363,
+    },
+    {
+      competitionCode: "2324PL2",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 0,
+      awayScore: 0,
+      teamId: "KRPMAM01",
+      teamName: "우리카드",
+      mainAction: "s",
+      locationX: 37.33,
+      locationY: 54.67,
+      createdTime: 1697522445370,
+    },
+    {
+      competitionCode: "2324PL2",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 0,
+      awayScore: 0,
+      teamId: "KRPMAM01",
+      teamName: "우리카드",
+      mainAction: "q",
+      locationX: 37.24,
+      locationY: 88.89,
+      createdTime: 1697522445377,
+    },
+    {
+      competitionCode: "2324PL2",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 0,
+      awayScore: 0,
+      teamId: "KRPMEQ01",
+      teamName: "삼성화재",
+      mainAction: "d",
+      locationX: 73.43,
+      locationY: 17.78,
+      createdTime: 1697522445383,
+    },
+    {
+      competitionCode: "2324PL2",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 0,
+      awayScore: 0,
+      teamId: "KRPMEQ01",
+      teamName: "삼성화재",
+      mainAction: "s",
+      locationX: 73.33,
+      locationY: 71.56,
+      createdTime: 1697522445390,
+    },
+    {
+      competitionCode: "2324PL2",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 0,
+      awayScore: 0,
+      teamId: "KRPMEQ01",
+      teamName: "삼성화재",
+      mainAction: "q",
+      locationX: 65.81,
+      locationY: 13.56,
+      createdTime: 1697522445397,
+    },
+    {
+      competitionCode: "2324PL2",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 1,
+      awayScore: 0,
+      teamId: "KRPMAM01",
+      teamName: "우리카드",
+      mainAction: "x+",
+      locationX: 48.57,
+      locationY: 15.78,
+      createdTime: 1697522445406,
+    },
+    {
+      competitionCode: "2324PL2",
+      gender: "M",
+
+      rallySeq: 2,
+      homeScore: 0,
+      awayScore: 0,
+      teamId: "KRPMEQ01",
+      teamName: "삼성화재",
+      mainAction: "N+",
+      locationX: 54.76,
+      locationY: 20.22,
+      createdTime: 1697522445413,
+    },
   ];
 
   useEffect(() => {
@@ -335,18 +459,24 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (heatmapPlay && heatmapCount < 11) {
+    if (heatmapPlay && heatmapCount < 120) {
       setTimeout(() => {
         setHeatmapCount(pre => pre + 1);
-      }, 100);
+      }, 50);
+    }
+    if (heatmapCount >= 60) {
+      setSecondData(secondDataPoints);
+      secondsetHeatmapPlay(true);
     }
   }, [heatmapCount, heatmapPlay]);
 
-  console.log(heatmapCount);
-
-  // const heatmapZoom = useMemo(() => {
-  //   return 5 - 0.5 * heatmapCount;
-  // }, [heatmapCount]);
+  useEffect(() => {
+    if (secondheatmapPlay && secondheatmapCount < 60) {
+      setTimeout(() => {
+        secondsetHeatmapCount(pre => pre + 1);
+      }, 50);
+    }
+  }, [secondheatmapPlay, secondheatmapCount]);
 
   return (
     <>
@@ -373,6 +503,9 @@ const App = () => {
             setHeatmapCount(0);
             setHeatmapPlay(false);
             setData([]);
+            setSecondData([]);
+            secondsetHeatmapCount(0);
+            secondsetHeatmapPlay(false);
           }}>
           reset
         </Button>
@@ -394,8 +527,16 @@ const App = () => {
             points={data}
             longitudeExtractor={m => m.coordinates[0]}
             latitudeExtractor={m => m.coordinates[1]}
-            intensityExtractor={m => heatmapCount}
+            intensityExtractor={m => changeCound(heatmapCount)}
           />
+          {secondheatmapCount && (
+            <HeatmapLayer
+              points={secondData}
+              longitudeExtractor={m => m.coordinates[0]}
+              latitudeExtractor={m => m.coordinates[1]}
+              intensityExtractor={m => changeCound(secondheatmapCount)}
+            />
+          )}
 
           <ImageOverlay url={require("./히트맵코트.png")} bounds={bounds} />
         </Map>
@@ -439,15 +580,9 @@ const App = () => {
             <Ball />
             {view && (
               <InfoContainer>
-                <img
-                  width={50}
-                  height={80}
-                  src="https://img3.daumcdn.net/thumb/R658x0.q70/?fname=https://t1.daumcdn.net/news/202301/25/ilgansports/20230125145548916lbul.jpg"
-                />
-
                 <InfoRightContainer>
-                  <span>강소휘</span>
-                  <span>디그 실패</span>
+                  <span>한성정</span>
+                  <span>블로킹 성공</span>
                 </InfoRightContainer>
               </InfoContainer>
             )}
@@ -820,3 +955,7 @@ const Button = styled.div`
     opacity: 0.7;
   }
 `;
+
+const changeCound = count => {
+  return count < 60 ? 0.05 * count : 3 - (count - 60) * 0.05;
+};
