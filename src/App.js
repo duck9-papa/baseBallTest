@@ -484,7 +484,7 @@ const App = () => {
         <Coat3D />
         <MyElement3D />
       </Canvas> */}
-      <div
+      {/* <div
         style={{
           width: "100%",
           display: "flex",
@@ -540,7 +540,7 @@ const App = () => {
 
           <ImageOverlay url={require("./히트맵코트.png")} bounds={bounds} />
         </Map>
-      </div>
+      </div> */}
       <div
         style={{
           width: "100%",
