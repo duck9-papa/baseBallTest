@@ -5,30 +5,68 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useState } from "react";
 
-const MyBox = props => {
-  const geom = new THREE.BoxGeometry();
-  return <mesh {...props} geometry={geom}></mesh>;
+const YReturn = action => {
+  if (action.includes("x")) {
+    return 8;
+  }
+  if (action.includes("q")) {
+    return 10;
+  }
+  if (action.includes("a")) {
+    return 5;
+  }
+  return 3;
 };
 
+const dummyRally = [
+  {
+    mainAction: "a",
+    locationX: 14.48,
+    locationY: 51.11,
+  },
+  {
+    mainAction: "f",
+    locationX: 76.57,
+    locationY: 50.44,
+  },
+  {
+    mainAction: "s",
+    locationX: 63.33,
+    locationY: 48.67,
+  },
+  {
+    mainAction: "q+",
+    locationX: 61.43,
+    locationY: 90.44,
+  },
+  {
+    mainAction: "x-",
+    locationX: 48.57,
+    locationY: 79.11,
+  },
+];
+
+// y좌표가 0 일때 x 포지션이 -10
+// x좌표가 0일때 z 포지션이 20
+// x좌표 => z포지션
+// y좌표 => x포지션
+
 const initialPosition = {
-  xPosition: 2,
+  xPosition: -10,
   yPosition: 2,
   zPosition: 20,
 };
 
 const dummyHeatmap = [];
-for (let i = 0; i < 80; i++) {
-  const xValue = 6 - Math.random() * 12;
-  const yValue = Math.random() * 3 + 6;
-  const zValue = Math.random() * 4 + 2;
-  const resultX = 6 - Math.random() * 12;
-  const resultY = 1;
-  const resultZ = 0 - Math.random() * 20;
+for (let i = 0; i < dummyRally.length; i++) {
+  const xValue = Number(
+    -10 + ((dummyRally[i].locationY / 20) * 100).toFixed(2)
+  );
+  const zValue = Number((20 - (dummyRally[i].locationX / 40) * 100).toFixed(2));
+  const yValue = YReturn(dummyRally[i].mainAction);
+
   dummyHeatmap.push({
-    position: [
-      [xValue, yValue, zValue],
-      [resultX, resultY, resultZ],
-    ],
+    position: [xValue, yValue, zValue],
     color: Math.random() < 0.8 ? "rgba(0,255,0,0.1)" : "rgba(255, 0, 0, 0.1)",
   });
 }
@@ -43,7 +81,7 @@ const MyElement3D = () => {
 
   const [play, setPlay] = useState(false);
   const [yReverse, setYRevse] = useState(false);
-  const [select, setSelect] = useState(null);
+
   useFrame((state, delta) => {
     if (play) {
       const deltaValue = !yReverse
@@ -64,9 +102,6 @@ const MyElement3D = () => {
       setPosition(initialPosition);
       setYRevse(false);
     }
-    // if (!play) {
-    //   setPlay(true);
-    // }
   });
 
   const PlayingBall = () => {
@@ -78,6 +113,10 @@ const MyElement3D = () => {
       <directionalLight position={[1, 1, 1]} />
 
       <OrbitControls />
+      <mesh position={[10, 2, -20]} onClick={PlayingBall}>
+        <capsuleGeometry args={[capRadius, 0, 16, 64]} />
+        <meshStandardMaterial color="white" />
+      </mesh>
       <mesh position={[xPosition, yPosition, zPosition]} onClick={PlayingBall}>
         <capsuleGeometry args={[capRadius, 0, 16, 64]} />
         <meshStandardMaterial color="white" />
@@ -86,44 +125,21 @@ const MyElement3D = () => {
         <capsuleGeometry args={[capRadius, 0, 16, 64]} />
         <meshStandardMaterial emissive={"red"} wireframe />
       </mesh>
-      {dummyHeatmap.map((item, index) => (
-        <mesh
-          position={item.position[0]}
-          key={index}
-          onClick={() => setSelect(index === select ? null : index)}>
-          <capsuleGeometry
-            args={[
-              index === select ? 1 : 0.5,
-              0,
-              index === select ? 16 : 2,
-              index === select ? 32 : 8,
-            ]}
-          />
-          <meshStandardMaterial
-            emissive={index === select ? "blue" : item.color}
-            wireframe
-          />
-        </mesh>
-      ))}
-      {dummyHeatmap.map((item, index) => (
-        <mesh
-          position={item.position[1]}
-          key={index}
-          onClick={() => setSelect(index === select ? null : index)}>
-          <capsuleGeometry
-            args={[
-              index === select ? 1 : 0.5,
-              0,
-              index === select ? 16 : 2,
-              index === select ? 32 : 8,
-            ]}
-          />
-          <meshStandardMaterial
-            emissive={index === select ? "blue" : item.color}
-            wireframe
-          />
-        </mesh>
-      ))}
+      {dummyHeatmap.map(i => {
+        console.log(i);
+        return (
+          <>
+            <mesh position={i.position} onClick={PlayingBall}>
+              <capsuleGeometry args={[capRadius, 0, 16, 64]} />
+              <meshStandardMaterial color="white" />
+            </mesh>
+            <mesh position={i.position}>
+              <capsuleGeometry args={[capRadius, 0, 16, 64]} />
+              <meshStandardMaterial emissive={"red"} wireframe />
+            </mesh>
+          </>
+        );
+      })}
       <axesHelper scale={10} />
     </>
   );
