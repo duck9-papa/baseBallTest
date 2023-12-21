@@ -1,5 +1,5 @@
 import { Box, OrbitControls } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
@@ -34,10 +34,6 @@ for (let i = 0; i < 80; i++) {
 }
 
 const MyElement3D = () => {
-  const { capRadius } = useControls({
-    capRadius: { value: 1, min: 1, max: 20, step: 0.01 },
-  });
-
   const [{ xPosition, yPosition, zPosition }, setPosition] =
     useState(initialPosition);
 

@@ -1,5 +1,5 @@
 import { Box, OrbitControls } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
@@ -24,56 +24,105 @@ const dummyRally = [
     teamName: "우리카드",
     mainAction: "a",
     locationX: 14.0,
-    locationY: 66.22,
+    locationY: 75.78,
   },
   {
     teamId: "KRPMEQ01",
     teamName: "삼성화재",
     mainAction: "f",
-    locationX: 75.81,
-    locationY: 49.78,
+    locationX: 75.9,
+    locationY: 18.44,
   },
   {
     teamId: "KRPMEQ01",
     teamName: "삼성화재",
     mainAction: "s",
-    locationX: 59.62,
-    locationY: 25.78,
+    locationX: 57.05,
+    locationY: 49.56,
   },
   {
     teamId: "KRPMEQ01",
     teamName: "삼성화재",
     mainAction: "q",
-    locationX: 62.67,
-    locationY: 85.33,
+    locationX: 59.71,
+    locationY: 66.89,
   },
   {
     teamId: "KRPMAM01",
     teamName: "우리카드",
     mainAction: "d",
-    locationX: 40.19,
-    locationY: 70.0,
+    locationX: 24.95,
+    locationY: 57.78,
   },
   {
     teamId: "KRPMAM01",
     teamName: "우리카드",
     mainAction: "s",
-    locationX: 45.24,
-    locationY: 80.44,
+    locationX: 28.19,
+    locationY: 44.44,
+  },
+  {
+    teamId: "KRPMAM01",
+    teamName: "우리카드",
+    mainAction: "q",
+    locationX: 33.71,
+    locationY: 87.33,
+  },
+  {
+    teamId: "KRPMEQ01",
+    teamName: "삼성화재",
+    mainAction: "d",
+    locationX: 63.24,
+    locationY: 68.44,
+  },
+  {
+    teamId: "KRPMEQ01",
+    teamName: "삼성화재",
+    mainAction: "s",
+    locationX: 72.48,
+    locationY: 64.44,
+  },
+  {
+    teamId: "KRPMEQ01",
+    teamName: "삼성화재",
+    mainAction: "q",
+    locationX: 66.0,
+    locationY: 14.89,
+  },
+  {
+    teamId: "KRPMAM01",
+    teamName: "우리카드",
+    mainAction: "x",
+    locationX: 48.76,
+    locationY: 20.44,
+  },
+  {
+    teamId: "KRPMAM01",
+    teamName: "우리카드",
+    mainAction: "d",
+    locationX: 19.05,
+    locationY: 79.56,
+  },
+  {
+    teamId: "KRPMAM01",
+    teamName: "우리카드",
+    mainAction: "s",
+    locationX: 34.0,
+    locationY: 50.67,
   },
   {
     teamId: "KRPMAM01",
     teamName: "우리카드",
     mainAction: "q+",
-    locationX: 33.9,
-    locationY: 83.33,
+    locationX: 32.95,
+    locationY: 88.22,
   },
   {
     teamId: "KRPMEQ01",
     teamName: "삼성화재",
-    mainAction: "d-",
-    locationX: 75.52,
-    locationY: 81.78,
+    mainAction: "x-",
+    locationX: 51.24,
+    locationY: 81.11,
   },
 ];
 // y좌표가 0 일때 x 포지션이 0
@@ -100,20 +149,18 @@ const initialPosition = {
 };
 
 const MyElement3D = () => {
-  const { capRadius } = useControls({
-    capRadius: { value: 1, min: 1, max: 20, step: 0.01 },
-  });
-
   const [{ xPosition, yPosition, zPosition }, setPosition] =
     useState(initialPosition);
 
   const meshRef = useRef();
   const secondRef = useRef();
+  const { camera } = useThree();
 
   const [play, setPlay] = useState(false);
   const [rallyIndex, setRallyIndex] = useState(0);
 
   useFrame((state, delta) => {
+    camera.lookAt(10, 0, -20);
     if (play && dummyHeatmap[rallyIndex + 1]) {
       const [currentX, currentY, currentZ] = dummyHeatmap[rallyIndex].position;
       const [nextX, nextY, nextZ] = dummyHeatmap[rallyIndex + 1].position;
@@ -140,16 +187,14 @@ const MyElement3D = () => {
 
       const xValue =
         xPosition +
-        Number(`${!xCheck ? "-" : "+"}${delta * 16 * xCoefficient}`);
+        Number(`${!xCheck ? "-" : "+"}${delta * 24 * xCoefficient}`);
       const yValue =
         yPosition +
-        Number(`${!yCheck ? "-" : "+"}${delta * 16 * yCoefficient}`);
+        Number(`${!yCheck ? "-" : "+"}${delta * 24 * yCoefficient}`);
       const zValue =
         zPosition +
-        Number(`${!zCheck ? "-" : "+"}${delta * 16 * zCoefficient}`);
+        Number(`${!zCheck ? "-" : "+"}${delta * 24 * zCoefficient}`);
       setPosition({ xPosition: xValue, yPosition: yValue, zPosition: zValue });
-
-      // console.log(yValue, yPosition, rallyIndex, nextY, currentY);
 
       if (
         ((xCheck && xPosition >= nextX) || (!xCheck && xPosition <= nextX)) &&
@@ -183,12 +228,12 @@ const MyElement3D = () => {
       <directionalLight position={[1, 1, 1]} />
 
       <OrbitControls />
-
+      <mesh position={[xPosition, yPosition, zPosition]}></mesh>
       <mesh
         ref={meshRef}
         position={[xPosition, yPosition, zPosition]}
         onClick={PlayingBall}>
-        <capsuleGeometry args={[capRadius, 0, 16, 64]} />
+        <capsuleGeometry args={[1, 0, 16, 64]} />
         <meshStandardMaterial color="white" />
       </mesh>
       <mesh ref={secondRef} position={[xPosition, yPosition, zPosition]}>

@@ -330,11 +330,20 @@ const App = () => {
           margin: "auto",
           border: "1px solid black",
         }}>
-        <Canvas camera={{ fov: 60, far: 100, position: [-25, 20, 10] }}>
+        <Canvas camera={{ fov: 60, far: 80, position: [-20, 25, 10] }}>
           <Coat3D />
           <AnimationElement />
         </Canvas>
       </div>
+      {/* <div
+        style={{
+          width: "1200px",
+          height: "600px",
+          margin: "auto",
+          border: "1px solid black",
+        }}>
+        <ThreeObject />
+      </div> */}
       {/* <div
         style={{
           width: "100%",

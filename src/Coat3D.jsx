@@ -16,7 +16,7 @@ const Coat3D = ({ position = [10, 0, -20] }) => {
       <directionalLight position={[-2, -2, -2]} />
 
       {/* <axesHelper scale={10} /> */}
-      {/* <OrbitControls /> */}
+      <OrbitControls />
       <mesh ref={refMesh} scale={[20, 1, 40]} position={position}>
         <boxGeometry />
         <meshStandardMaterial color="orange" />

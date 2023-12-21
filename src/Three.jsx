@@ -32,9 +32,11 @@ const ThreeObject = () => {
   return (
     <Canvas>
       <ambientLight />
-      <pointLight position={[10, 10, 10]} />
-      <Box position={[-1.2, 0, 0]} />
-      <Box position={[1.2, 1, -1]} />
+      <directionalLight position={[1, 1, 1]} />
+      <mesh>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color={"red"} />
+      </mesh>
     </Canvas>
   );
 };
