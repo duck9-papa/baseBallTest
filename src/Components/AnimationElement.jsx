@@ -7,13 +7,19 @@ import { useState } from "react";
 
 const YReturn = action => {
   if (action.includes("x")) {
-    return 8;
+    return 7;
   }
   if (action.includes("q")) {
     return 10;
   }
+  if (action.includes("s")) {
+    return 5;
+  }
   if (action.includes("a")) {
     return 7;
+  }
+  if (action.includes("z")) {
+    return 0;
   }
   return 3;
 };
@@ -123,6 +129,13 @@ const dummyRally = [
     mainAction: "x-",
     locationX: 51.24,
     locationY: 81.11,
+  },
+  {
+    teamId: "KRPMEQ01",
+    teamName: "삼성화재",
+    mainAction: "z",
+    locationX: 51,
+    locationY: 250,
   },
 ];
 // y좌표가 0 일때 x 포지션이 0
