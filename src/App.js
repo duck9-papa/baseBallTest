@@ -1,15 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  VictoryPolarAxis,
-  VictoryChart,
-  VictoryBar,
-  VictoryLine,
-  VictoryScatter,
-  VictoryGroup,
-  VictoryAxis,
-  VictoryLabel,
-  VictoryPie,
-} from "victory";
+import * as THREE from "three";
+
 import { scatterData, secondDataPoints } from "./Data.js";
 
 import L from "leaflet";
@@ -24,7 +15,7 @@ import { FaVolleyballBall } from "react-icons/fa";
 import axios from "axios";
 
 import ThreeObject from "./Three";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, Camera, useThree } from "@react-three/fiber";
 import Coat3D from "./Coat3D.jsx";
 import MyElement3D from "./MyElement3D.jsx";
 import AnimationElement from "./Components/AnimationElement.jsx";
@@ -313,14 +304,33 @@ const App = () => {
 
   return (
     <>
-      <div style={{ width: "1200px", height: "600px", margin: "auto" }}>
-        <Canvas camera={{ fov: 60, far: 100, position: [-25, 15, 0] }}>
-          <Coat3D />
+      <div
+        style={{
+          width: "1200px",
+          height: "600px",
+          margin: "auto",
+          border: "1px solid black",
+        }}>
+        <Canvas
+          shadows
+          frameloop="demand"
+          camera={{
+            fov: 60,
+            far: 100,
+            position: [-15, 15, 5],
+          }}>
+          <Coat3D position={[0, 0, 0]} />
           <MyElement3D />
         </Canvas>
       </div>
-      <div style={{ width: "1200px", height: "600px", margin: "auto" }}>
-        <Canvas camera={{ fov: 60, far: 100, position: [-25, 15, 0] }}>
+      <div
+        style={{
+          width: "1200px",
+          height: "600px",
+          margin: "auto",
+          border: "1px solid black",
+        }}>
+        <Canvas camera={{ fov: 60, far: 100, position: [-25, 20, 10] }}>
           <Coat3D />
           <AnimationElement />
         </Canvas>

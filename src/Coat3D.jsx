@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 
-const Coat3D = () => {
+const Coat3D = ({ position = [10, 0, -20] }) => {
   const refMesh = useRef();
 
   //   useFrame((state, delta) => {
@@ -17,7 +17,7 @@ const Coat3D = () => {
 
       {/* <axesHelper scale={10} /> */}
       {/* <OrbitControls /> */}
-      <mesh ref={refMesh} scale={[20, 1, 40]} position={[0, 0, 0]}>
+      <mesh ref={refMesh} scale={[20, 1, 40]} position={position}>
         <boxGeometry />
         <meshStandardMaterial color="orange" />
       </mesh>

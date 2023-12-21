@@ -29,7 +29,7 @@ for (let i = 0; i < 80; i++) {
       [xValue, yValue, zValue],
       [resultX, resultY, resultZ],
     ],
-    color: Math.random() < 0.8 ? "rgba(0,255,0,0.1)" : "rgba(255, 0, 0, 0.1)",
+    color: Math.random() < 0.8 ? "green" : "red",
   });
 }
 
@@ -78,14 +78,7 @@ const MyElement3D = () => {
       <directionalLight position={[1, 1, 1]} />
 
       <OrbitControls />
-      <mesh position={[xPosition, yPosition, zPosition]} onClick={PlayingBall}>
-        <capsuleGeometry args={[capRadius, 0, 16, 64]} />
-        <meshStandardMaterial color="white" />
-      </mesh>
-      <mesh position={[xPosition, yPosition, zPosition]}>
-        <capsuleGeometry args={[capRadius, 0, 16, 64]} />
-        <meshStandardMaterial emissive={"red"} wireframe />
-      </mesh>
+
       {dummyHeatmap.map((item, index) => (
         <mesh
           position={item.position[0]}
