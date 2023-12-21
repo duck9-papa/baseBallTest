@@ -6,6 +6,9 @@ import * as THREE from "three";
 import { useState } from "react";
 
 const YReturn = action => {
+  if (action === "ready") {
+    return 1;
+  }
   if (action.includes("x")) {
     return 7;
   }
@@ -16,15 +19,23 @@ const YReturn = action => {
     return 5;
   }
   if (action.includes("a")) {
-    return 7;
+    return 8;
   }
   if (action.includes("z")) {
     return 0;
   }
-  return 3;
+
+  return 4;
 };
 
 const dummyRally = [
+  {
+    teamId: "KRPMAM01",
+    teamName: "우리카드",
+    mainAction: "ready",
+    locationX: 14.0,
+    locationY: 75.78,
+  },
   {
     teamId: "KRPMAM01",
     teamName: "우리카드",
