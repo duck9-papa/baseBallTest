@@ -1,7 +1,7 @@
 import { Box, OrbitControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useState } from "react";
 
@@ -20,9 +20,6 @@ const YReturn = action => {
   }
   if (action.includes("a")) {
     return 8;
-  }
-  if (action.includes("z")) {
-    return 0;
   }
 
   return 4;
@@ -166,15 +163,52 @@ for (let i = 0; i < dummyRally.length; i++) {
   });
 }
 
-const initialPosition = {
-  xPosition: dummyHeatmap[0].position[0],
-  yPosition: dummyHeatmap[0].position[1],
-  zPosition: dummyHeatmap[0].position[2],
-};
+const MyElement3D = ({ rally }) => {
+  const rallyConvert = useMemo(() => {
+    const dummy = [];
+    for (let i = 0; i < rally.length; i++) {
+      const xValue = Number(((rally[i].locationY / 100) * 20).toFixed(2));
+      const zValue = Number(-((rally[i].locationX / 100) * 40).toFixed(2));
+      const yValue = YReturn(rally[i].mainAction);
 
-const MyElement3D = () => {
+      if (i === 0) {
+        dummy.push({
+          position: [xValue, 1, zValue],
+          mainAction: "ready",
+        });
+      }
+
+      dummy.push({
+        position: [xValue, yValue, zValue],
+        mainAction: rally[i].mainAction,
+      });
+      if (i === rally.length - 1) {
+        dummy.push({
+          position: [xValue > 10 ? 30 : -10, 0, zValue],
+          mainAction: "z",
+        });
+      }
+    }
+    return dummy;
+  }, [rally]);
+
+  const initialPosition = useMemo(
+    () => ({
+      xPosition: rallyConvert?.[0]?.position?.[0],
+      yPosition: rallyConvert?.[0]?.position?.[1],
+      zPosition: rallyConvert?.[0]?.position?.[2],
+    }),
+    [rallyConvert]
+  );
+
   const [{ xPosition, yPosition, zPosition }, setPosition] =
     useState(initialPosition);
+
+  useEffect(() => {
+    setPlay(false);
+    setPosition(initialPosition);
+    setRallyIndex(0);
+  }, [initialPosition]);
 
   const meshRef = useRef();
   const secondRef = useRef();
@@ -185,9 +219,9 @@ const MyElement3D = () => {
 
   useFrame((state, delta) => {
     camera.lookAt(10, 0, -20);
-    if (play && dummyHeatmap[rallyIndex + 1]) {
-      const [currentX, currentY, currentZ] = dummyHeatmap[rallyIndex].position;
-      const [nextX, nextY, nextZ] = dummyHeatmap[rallyIndex + 1].position;
+    if (play && rallyConvert[rallyIndex + 1]) {
+      const [currentX, currentY, currentZ] = rallyConvert[rallyIndex].position;
+      const [nextX, nextY, nextZ] = rallyConvert[rallyIndex + 1].position;
       // check = 현재 인덱스 포지션이 타겟 포지션보다 작은지
       const xCheck = nextX - currentX >= 0;
       const yCheck = nextY - currentY >= 0;
@@ -229,12 +263,12 @@ const MyElement3D = () => {
         setPosition({ xPosition: nextX, yPosition: nextY, zPosition: nextZ });
       }
     } else {
-      if (rallyIndex === dummyHeatmap.length - 1)
+      if (rallyIndex + 1 === rallyConvert?.length)
         setTimeout(() => {
           setPlay(false);
           setPosition(initialPosition);
           setRallyIndex(0);
-        }, 2000);
+        }, 1000);
     }
   });
 
@@ -245,7 +279,7 @@ const MyElement3D = () => {
 
   useEffect(() => {
     secondRef.current.geometry = meshRef.current.geometry;
-  }, [xPosition, yPosition, zPosition]);
+  }, [xPosition, yPosition, zPosition, rally]);
 
   return (
     <>

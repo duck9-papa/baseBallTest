@@ -84,7 +84,7 @@ const MyElement3D = () => {
             args={[
               index === select ? 1 : 0.5,
               0,
-              index === select ? 16 : 2,
+              index === select ? 16 : 4,
               index === select ? 32 : 8,
             ]}
           />

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import { scatterData, secondDataPoints } from "./Data.js";
-
+import dummyArr from "./dummyHeatmap.jsx";
 import L from "leaflet";
 import HeatmapLayer from "react-leaflet-heatmap-layer";
 import { Map, ImageOverlay } from "react-leaflet";
@@ -165,142 +165,9 @@ var bounds = [
 ];
 
 const App = () => {
-  const [data, setData] = useState([]);
-  const [secondData, setSecondData] = useState([]);
-  const [play, setPlay] = useState(false);
-  const [count, setCount] = useState(0);
-  const [view, setView] = useState(false);
-  const [heatmapPlay, setHeatmapPlay] = useState(false);
-  const [heatmapCount, setHeatmapCount] = useState(0);
+  const [select, setSelect] = useState(null);
 
-  const [secondheatmapPlay, secondsetHeatmapPlay] = useState(false);
-  const [secondheatmapCount, secondsetHeatmapCount] = useState(0);
-
-  const [ballTeam, setBallTeam] = useState(null);
-  const [spread, setSpread] = useState(false);
-  const [dummy, setDummy] = useState([]);
-
-  const chartCategory = [
-    { code: "offenSuccessRate", codeName: "공격 성공률" },
-    { code: "backSuccessRate", codeName: "후위 성공률" },
-    { code: "cquickSuccessRate", codeName: "퀵오픈 성공률" },
-    { code: "openSuccessRate", codeName: "오픈 성공률" },
-    { code: "serveSuccessRate", codeName: "서브 성공률" },
-  ];
-
-  const location = [
-    {
-      competitionCode: "2324PL2",
-      action: "serve",
-
-      locationX: 84.95,
-      locationY: 30.0,
-    },
-    {
-      locationX: 24.95,
-      locationY: 26.89,
-    },
-    {
-      locationX: 37.33,
-      locationY: 54.67,
-    },
-    {
-      locationX: 37.24,
-      locationY: 88.89,
-    },
-    {
-      locationX: 73.43,
-      locationY: 17.78,
-    },
-    {
-      locationX: 73.33,
-      locationY: 71.56,
-    },
-    {
-      locationX: 65.81,
-      locationY: 13.56,
-    },
-    {
-      locationX: 48.57,
-      locationY: 15.78,
-    },
-    {
-      locationX: 54.76,
-      locationY: 20.22,
-    },
-  ];
-
-  useEffect(() => {
-    try {
-      if (location[count].locationX < 50) {
-        setBallTeam("home");
-      } else {
-        setBallTeam("away");
-      }
-    } finally {
-      if (play && count < location.length - 1) {
-        setTimeout(
-          () => {
-            setCount(count + 1);
-          },
-          count === 0 ? 3000 : 2000
-        );
-      }
-      if (count === location.length - 1) {
-        setView(true);
-      }
-    }
-  }, [play, count]);
-
-  useEffect(() => {
-    if (play && !count) {
-      setTimeout(() => {
-        setSpread(true);
-      }, 2000);
-    }
-    if (count) {
-      setSpread(false);
-      setTimeout(
-        () => {
-          setSpread(true);
-        },
-        count === 0 ? 2000 : 1200
-      );
-    }
-  }, [count, play]);
-
-  useEffect(() => {
-    const indistats = async () => {
-      const data = await axios
-        .post("http://223.130.136.167:8080/api/stats/selectindistatslist", {
-          indiStatsId: { gameCode: "2324PL2M003" },
-        })
-        .then(r => r.data.data);
-
-      setDummy(data);
-    };
-    indistats();
-  }, []);
-
-  useEffect(() => {
-    if (heatmapPlay && heatmapCount < 120) {
-      setTimeout(() => {
-        setHeatmapCount(pre => pre + 1);
-      }, 50);
-    }
-    if (heatmapCount >= 60) {
-      setSecondData(secondDataPoints);
-      secondsetHeatmapPlay(true);
-    }
-  }, [heatmapCount, heatmapPlay]);
-
-  useEffect(() => {
-    if (secondheatmapPlay && secondheatmapCount < 60) {
-      setTimeout(() => {
-        secondsetHeatmapCount(pre => pre + 1);
-      }, 50);
-    }
-  }, [secondheatmapPlay, secondheatmapCount]);
+  const [rally, setRally] = useState([]);
 
   return (
     <>
@@ -325,16 +192,58 @@ const App = () => {
       </div>
       <div
         style={{
-          width: "1200px",
+          width: "1400px",
           height: "600px",
           margin: "auto",
           border: "1px solid black",
+          display: "flex",
+          flexDirection: "row",
+          gap: "50px",
         }}>
-        <Canvas camera={{ fov: 60, far: 80, position: [-20, 25, 10] }}>
-          <Coat3D />
-          <AnimationElement />
-        </Canvas>
+        <div
+          style={{
+            width: "1200px",
+            height: "100%",
+          }}>
+          <Canvas camera={{ fov: 60, far: 80, position: [-20, 25, 10] }}>
+            <Coat3D />
+            <AnimationElement rally={rally} />
+          </Canvas>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            height: "100%",
+            width: "150px",
+            flexDirection: "column",
+            overflowY: "scroll",
+            overflowX: "hidden",
+          }}>
+          {dummyArr.map((item, index) => (
+            <div
+              style={{
+                width: "100px",
+                minHeight: "50px",
+                border: "1px solid black",
+                cursor: "pointer",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+                textAlign: "center",
+                background: select === index ? "pink" : null,
+              }}
+              key={index}
+              onClick={() => {
+                setSelect(index);
+                setRally(item);
+              }}>
+              <div>{index + 1}번 랠리</div>
+              <div>{item.length} 액션</div>
+            </div>
+          ))}
+        </div>
       </div>
+      <div style={{ width: "1200px", height: "100px" }}></div>
       {/* <div
         style={{
           width: "1200px",
@@ -351,10 +260,8 @@ const App = () => {
           justifyContent: "center",
           position: "relative",
         }}>
-        <
-        
-
-          onClick={() => {
+        <button
+        onClick={() => {
             setHeatmapPlay(true);
             setData(dataPoints);
           }}>
