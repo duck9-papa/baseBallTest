@@ -207,7 +207,7 @@ const App = () => {
             width: "1200px",
             height: "100%",
           }}>
-          <Canvas camera={{ fov: 60, far: 80, position: [-20, 25, 10] }}>
+          <Canvas camera={{ fov: 40, far: 80, position: [-20, 25, 10] }}>
             <AnimationCoat />
             <AnimationElement
               playing={playing}
@@ -237,6 +237,7 @@ const App = () => {
                 flexDirection: "column",
                 textAlign: "center",
                 background: select === index ? "pink" : null,
+                margin: "0 auto",
               }}
               key={index}
               onClick={() => {
