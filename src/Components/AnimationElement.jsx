@@ -162,7 +162,7 @@ for (let i = 0; i < dummyRally.length; i++) {
   });
 }
 
-const MyElement3D = ({ rally }) => {
+const MyElement3D = ({ rally, playing, setPlaying }) => {
   const rallyConvert = useMemo(() => {
     const dummy = [];
     for (let i = 0; i < rally.length; i++) {
@@ -204,14 +204,13 @@ const MyElement3D = ({ rally }) => {
     useState(initialPosition);
 
   useEffect(() => {
-    setPlay(false);
+    setPlaying(false);
     setPosition(initialPosition);
     setRallyIndex(0);
   }, [initialPosition]);
 
   const { camera } = useThree();
 
-  const [play, setPlay] = useState(false);
   const [rallyIndex, setRallyIndex] = useState(0);
   const ValleyBall = useGLTF("/models/ball.glb");
 
@@ -224,7 +223,7 @@ const MyElement3D = ({ rally }) => {
     ValleyBall.scene.rotateX(delta);
     ValleyBall.scene.rotateY(delta);
 
-    if (play && rallyConvert[rallyIndex + 1]) {
+    if (playing && rallyConvert[rallyIndex + 1]) {
       const [currentX, currentY, currentZ] = rallyConvert[rallyIndex].position;
       const [nextX, nextY, nextZ] = rallyConvert[rallyIndex + 1].position;
       const currentAction = rallyConvert[rallyIndex]?.mainAction;
@@ -293,7 +292,7 @@ const MyElement3D = ({ rally }) => {
     } else {
       if (rallyIndex + 1 === rallyConvert?.length)
         setTimeout(() => {
-          setPlay(false);
+          setPlaying(false);
           setPosition(initialPosition);
           setRallyIndex(0);
           ValleyBall.scene.position.x = initialPosition.xPosition;
@@ -304,7 +303,7 @@ const MyElement3D = ({ rally }) => {
   });
 
   const PlayingBall = () => {
-    setPlay(true);
+    if (!playing) setPlaying(true);
     setRallyIndex(0);
   };
 

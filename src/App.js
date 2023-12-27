@@ -169,6 +169,7 @@ const App = () => {
   const [select, setSelect] = useState(null);
 
   const [rally, setRally] = useState([]);
+  const [playing, setPlaying] = useState(false);
 
   return (
     <>
@@ -208,7 +209,11 @@ const App = () => {
           }}>
           <Canvas camera={{ fov: 60, far: 80, position: [-20, 25, 10] }}>
             <AnimationCoat />
-            <AnimationElement rally={rally} />
+            <AnimationElement
+              playing={playing}
+              setPlaying={setPlaying}
+              rally={rally}
+            />
           </Canvas>
         </div>
         <div
@@ -235,8 +240,10 @@ const App = () => {
               }}
               key={index}
               onClick={() => {
-                setSelect(index);
-                setRally(item);
+                if (!playing) {
+                  setSelect(index);
+                  setRally(item);
+                }
               }}>
               <div>{index + 1}번 랠리</div>
               <div>{item.length} 액션</div>
