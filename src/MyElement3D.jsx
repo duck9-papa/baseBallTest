@@ -69,11 +69,6 @@ const MyElement3D = () => {
     setPlay(true);
   };
 
-  const { p, q } = useControls({
-    p: { value: 1, min: 1, max: 300, step: 0.1 },
-    q: { value: 1, min: 1, max: 300, step: 0.1 },
-  });
-
   return (
     <>
       <directionalLight position={[1, 1, 1]} />
