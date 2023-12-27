@@ -1,7 +1,5 @@
 import { OrbitControls } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import * as THREE from "three";
 
 const Coat3D = ({ position = [10, 0, -20] }) => {
   const refMesh = useRef();

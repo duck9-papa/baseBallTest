@@ -17,7 +17,7 @@ const initialPosition = {
 };
 
 const dummyHeatmap = [];
-for (let i = 0; i < 80; i++) {
+for (let i = 0; i < 150; i++) {
   const xValue = 6 - Math.random() * 12;
   const yValue = Math.random() * 3 + 6;
   const zValue = Math.random() * 4 + 2;
@@ -29,7 +29,7 @@ for (let i = 0; i < 80; i++) {
       [xValue, yValue, zValue],
       [resultX, resultY, resultZ],
     ],
-    color: Math.random() < 0.8 ? "green" : "red",
+    color: Math.random() < 0.8 ? "yellow" : "red",
   });
 }
 
@@ -69,6 +69,11 @@ const MyElement3D = () => {
     setPlay(true);
   };
 
+  const { p, q } = useControls({
+    p: { value: 1, min: 1, max: 300, step: 0.1 },
+    q: { value: 1, min: 1, max: 300, step: 0.1 },
+  });
+
   return (
     <>
       <directionalLight position={[1, 1, 1]} />
@@ -80,17 +85,15 @@ const MyElement3D = () => {
           position={item.position[0]}
           key={index}
           onClick={() => setSelect(index === select ? null : index)}>
-          <capsuleGeometry
-            args={[
-              index === select ? 1 : 0.5,
-              0,
-              index === select ? 16 : 4,
-              index === select ? 32 : 8,
-            ]}
-          />
-          <meshStandardMaterial
+          <capsuleGeometry args={[0.5, 0, 16, 32]} />
+          {/* <meshStandardMaterial
             emissive={index === select ? "blue" : item.color}
             wireframe
+          /> */}
+          <meshBasicMaterial
+            transparent
+            opacity={item.color === "red" ? 0.6 : 0.3}
+            color={item.color}
           />
         </mesh>
       ))}
@@ -99,17 +102,15 @@ const MyElement3D = () => {
           position={item.position[1]}
           key={index}
           onClick={() => setSelect(index === select ? null : index)}>
-          <capsuleGeometry
-            args={[
-              index === select ? 1 : 0.5,
-              0,
-              index === select ? 16 : 2,
-              index === select ? 32 : 8,
-            ]}
-          />
-          <meshStandardMaterial
+          <capsuleGeometry args={[0.5, 0, 16, 32]} />
+          {/* <meshStandardMaterial
             emissive={index === select ? "blue" : item.color}
             wireframe
+          /> */}
+          <meshBasicMaterial
+            transparent
+            opacity={item.color === "red" ? 0.6 : 0.3}
+            color={item.color}
           />
         </mesh>
       ))}

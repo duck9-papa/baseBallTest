@@ -1,10 +1,9 @@
-import { Box, OrbitControls } from "@react-three/drei";
+import { Box, OrbitControls, useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useState } from "react";
-
 const YReturn = action => {
   if (action === "ready") {
     return 1;
@@ -173,7 +172,7 @@ const MyElement3D = ({ rally }) => {
 
       if (i === 0) {
         dummy.push({
-          position: [xValue, 1, zValue],
+          position: [xValue, 1.5, zValue],
           mainAction: "ready",
         });
       }
@@ -216,12 +215,27 @@ const MyElement3D = ({ rally }) => {
 
   const [play, setPlay] = useState(false);
   const [rallyIndex, setRallyIndex] = useState(0);
+  const ValleyBall = useGLTF("/models/ball.glb");
 
   useFrame((state, delta) => {
     camera.lookAt(10, 0, -20);
+    // meshRef.current.rotation.x += delta;
+    // meshRef.current.rotation.y += delta;
+    // secondRef.current.rotation.x += delta;
+    // secondRef.current.rotation.y += delta;
+    ValleyBall.scene.rotateX(delta);
+    ValleyBall.scene.rotateY(delta);
+
     if (play && rallyConvert[rallyIndex + 1]) {
       const [currentX, currentY, currentZ] = rallyConvert[rallyIndex].position;
       const [nextX, nextY, nextZ] = rallyConvert[rallyIndex + 1].position;
+      const currentAction = rallyConvert[rallyIndex]?.mainAction;
+      const actionCoefficient =
+        currentAction?.includes("q") || currentAction?.includes("x")
+          ? 1.5
+          : currentAction?.includes("z")
+            ? 2
+            : 1;
       // check = 현재 인덱스 포지션이 타겟 포지션보다 작은지
       const xCheck = nextX - currentX >= 0;
       const yCheck = nextY - currentY >= 0;
@@ -233,6 +247,7 @@ const MyElement3D = ({ rally }) => {
           Math.abs(nextZ - currentZ),
         ]
       );
+
       const xCoefficient = Math.abs(nextX - currentX) / maxima || 0;
       const yCoefficient = Math.abs(nextY - currentY) / maxima || 0;
       const zCoefficient = Math.abs(nextZ - currentZ) / maxima || 0;
@@ -245,14 +260,29 @@ const MyElement3D = ({ rally }) => {
 
       const xValue =
         xPosition +
-        Number(`${!xCheck ? "-" : "+"}${delta * 24 * xCoefficient}`);
+        Number(
+          `${!xCheck ? "-" : "+"}${
+            delta * 24 * xCoefficient * actionCoefficient
+          }`
+        );
       const yValue =
         yPosition +
-        Number(`${!yCheck ? "-" : "+"}${delta * 24 * yCoefficient}`);
+        Number(
+          `${!yCheck ? "-" : "+"}${
+            delta * 24 * yCoefficient * actionCoefficient
+          }`
+        );
       const zValue =
         zPosition +
-        Number(`${!zCheck ? "-" : "+"}${delta * 24 * zCoefficient}`);
+        Number(
+          `${!zCheck ? "-" : "+"}${
+            delta * 24 * zCoefficient * actionCoefficient
+          }`
+        );
       setPosition({ xPosition: xValue, yPosition: yValue, zPosition: zValue });
+      ValleyBall.scene.position.x = xValue;
+      ValleyBall.scene.position.y = yValue;
+      ValleyBall.scene.position.z = zValue;
 
       if (
         ((xCheck && xPosition >= nextX) || (!xCheck && xPosition <= nextX)) &&
@@ -268,7 +298,10 @@ const MyElement3D = ({ rally }) => {
           setPlay(false);
           setPosition(initialPosition);
           setRallyIndex(0);
-        }, 1000);
+          ValleyBall.scene.position.x = initialPosition.xPosition;
+          ValleyBall.scene.position.y = initialPosition.yPosition;
+          ValleyBall.scene.position.z = initialPosition.zPosition;
+        }, 500);
     }
   });
 
@@ -277,26 +310,35 @@ const MyElement3D = ({ rally }) => {
     setRallyIndex(0);
   };
 
-  useEffect(() => {
-    secondRef.current.geometry = meshRef.current.geometry;
-  }, [xPosition, yPosition, zPosition, rally]);
+  // useEffect(() => {
+  //   secondRef.current.geometry = meshRef.current.geometry;
+  // }, [xPosition, yPosition, zPosition, rally]);
 
+  useEffect(() => {
+    ValleyBall.scene.traverse(item => {});
+
+    ValleyBall.scene.scale.x = 0.03;
+    ValleyBall.scene.scale.y = 0.03;
+    ValleyBall.scene.scale.z = 0.03;
+    ValleyBall.scene.position.x = initialPosition.xPosition;
+    ValleyBall.scene.position.y = initialPosition.yPosition;
+    ValleyBall.scene.position.z = initialPosition.zPosition;
+  }, [ValleyBall.scene, initialPosition]);
   return (
     <>
       <directionalLight position={[1, 1, 1]} />
-
+      <ambientLight color={"#FFFFFF"} />
       <OrbitControls />
-      <mesh position={[xPosition, yPosition, zPosition]}></mesh>
-      <mesh
+
+      <primitive object={ValleyBall.scene} onClick={PlayingBall} />
+      {/* <mesh
         ref={meshRef}
         position={[xPosition, yPosition, zPosition]}
         onClick={PlayingBall}>
-        <capsuleGeometry args={[1, 0, 16, 64]} />
-        <meshStandardMaterial color="white" />
-      </mesh>
-      <mesh ref={secondRef} position={[xPosition, yPosition, zPosition]}>
-        <meshStandardMaterial emissive={"red"} wireframe />
-      </mesh>
+        <capsuleGeometry args={[1, 0, 4, 16]} />
+        <meshStandardMaterial emissive={"black"} wireframe />
+      </mesh> */}
+      {/* <mesh ref={secondRef} position={[xPosition, yPosition, zPosition]}></mesh> */}
     </>
   );
 };
