@@ -317,9 +317,9 @@ const MyElement3D = ({ rally }) => {
   useEffect(() => {
     ValleyBall.scene.traverse(item => {});
 
-    ValleyBall.scene.scale.x = 0.03;
-    ValleyBall.scene.scale.y = 0.03;
-    ValleyBall.scene.scale.z = 0.03;
+    ValleyBall.scene.scale.x = 0.02;
+    ValleyBall.scene.scale.y = 0.02;
+    ValleyBall.scene.scale.z = 0.02;
     ValleyBall.scene.position.x = initialPosition.xPosition;
     ValleyBall.scene.position.y = initialPosition.yPosition;
     ValleyBall.scene.position.z = initialPosition.zPosition;

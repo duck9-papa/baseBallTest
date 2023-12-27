@@ -19,6 +19,7 @@ import { Canvas, Camera, useThree } from "@react-three/fiber";
 import Coat3D from "./Coat3D.jsx";
 import MyElement3D from "./MyElement3D.jsx";
 import AnimationElement from "./Components/AnimationElement.jsx";
+import AnimationCoat from "./AnimationCoat.jsx";
 
 const showView = keyframes`
 from{
@@ -206,7 +207,7 @@ const App = () => {
             height: "100%",
           }}>
           <Canvas camera={{ fov: 60, far: 80, position: [-20, 25, 10] }}>
-            <Coat3D />
+            <AnimationCoat />
             <AnimationElement rally={rally} />
           </Canvas>
         </div>
