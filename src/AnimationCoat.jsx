@@ -12,9 +12,10 @@ const AnimationCoat = ({ position = [10, 0, -20] }) => {
 
   const Court = useGLTF("/models/volleyball.glb");
   useEffect(() => {
-    Court.scene.position.x = 10;
-    Court.scene.position.z = -20;
+    Court.scene.position.x = position[0];
+    Court.scene.position.z = position[2];
     Court.scene.scale.z = 1.3;
+    Court.scene.scale.x = 1.1;
   }, [Court.scene]);
 
   return (

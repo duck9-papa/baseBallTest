@@ -9,19 +9,19 @@ const YReturn = action => {
     return 1;
   }
   if (action.includes("x")) {
-    return 7;
+    return 6;
   }
   if (action.includes("q")) {
-    return 10;
-  }
-  if (action.includes("s")) {
     return 5;
   }
+  if (action.includes("s")) {
+    return 3;
+  }
   if (action.includes("a")) {
-    return 8;
+    return 7;
   }
 
-  return 4;
+  return 2;
 };
 
 const dummyRally = [
@@ -209,8 +209,6 @@ const MyElement3D = ({ rally }) => {
     setRallyIndex(0);
   }, [initialPosition]);
 
-  const meshRef = useRef();
-  const secondRef = useRef();
   const { camera } = useThree();
 
   const [play, setPlay] = useState(false);
@@ -262,21 +260,21 @@ const MyElement3D = ({ rally }) => {
         xPosition +
         Number(
           `${!xCheck ? "-" : "+"}${
-            delta * 24 * xCoefficient * actionCoefficient
+            delta * 16 * xCoefficient * actionCoefficient
           }`
         );
       const yValue =
         yPosition +
         Number(
           `${!yCheck ? "-" : "+"}${
-            delta * 24 * yCoefficient * actionCoefficient
+            delta * 16 * yCoefficient * actionCoefficient
           }`
         );
       const zValue =
         zPosition +
         Number(
           `${!zCheck ? "-" : "+"}${
-            delta * 24 * zCoefficient * actionCoefficient
+            delta * 16 * zCoefficient * actionCoefficient
           }`
         );
       setPosition({ xPosition: xValue, yPosition: yValue, zPosition: zValue });
