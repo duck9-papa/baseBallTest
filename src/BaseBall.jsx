@@ -18,14 +18,16 @@ const Baseball = ({ position = [10, 0, -20] }) => {
   const [playing, setPlaying] = useState(false);
   const [points, setPoints] = useState(initialPoints);
   const [radius, setRadius] = useState(0);
+  const [yReverse, setYReverse] = useState(false);
+  const [zReverse, setZReverse] = useState(false);
 
   const { cameraX, cameraY, cameraZ, targetX, targetY, targetZ } = useControls({
-    cameraX: { value: -5, max: 10, min: -10, step: 0.01 },
-    cameraY: { value: 5, max: 10, min: -10, step: 0.01 },
-    cameraZ: { value: 10, max: 10, min: -10, step: 0.01 },
-    targetX: { value: 0, max: 10, min: -10, step: 0.01 },
-    targetY: { value: 5, max: 10, min: -10, step: 0.01 },
-    targetZ: { value: 0, max: 10, min: -10, step: 0.01 },
+    cameraX: { value: -5, max: 20, min: -20, step: 0.01 },
+    cameraY: { value: 5, max: 20, min: -20, step: 0.01 },
+    cameraZ: { value: 10, max: 20, min: -20, step: 0.01 },
+    targetX: { value: 0, max: 20, min: -20, step: 0.01 },
+    targetY: { value: 5, max: 20, min: -20, step: 0.01 },
+    targetZ: { value: 0, max: 20, min: -20, step: 0.01 },
   });
 
   const Ball = useGLTF("/models/baseball.glb");
@@ -78,35 +80,41 @@ const Baseball = ({ position = [10, 0, -20] }) => {
           Ball.scene.position.z = basePosition[2];
           setPlaying(false);
           setPoints(initialPoints);
+          setYReverse(false);
+          setZReverse(false);
         }, 1000);
       } else {
         const randomX = Math.random() * delta * 4;
-        const randomY = Number(
-          (Math.random() < 0.5 ? "-" : "+") + Math.random() * delta * 4
-        );
-        const randomZ = Number(
-          (Math.random() < 0.5 ? "-" : "+") + Math.random() * delta * 4
-        );
+        const randomY = Math.random() * delta * 3;
+        const randomZ = Math.random() * delta * 3;
+        console.log(Ball.scene.position.y + randomY, yReverse);
 
+        if (Ball.scene.position.y + randomY >= 7 && !yReverse) {
+          console.log("dd");
+          setYReverse(true);
+        }
+        if (Ball.scene.position.z + randomZ >= 1 && !zReverse) {
+          setZReverse(true);
+        }
         // Ball.scene.position.x += xValue;
         // Ball.scene.position.y += yValue;
         // Ball.scene.position.z += zValue;
         Ball.scene.position.x += xValue;
-        Ball.scene.position.y += randomY;
-        Ball.scene.position.z += randomZ;
+        Ball.scene.position.y += yReverse ? -randomY : randomY;
+        Ball.scene.position.z += zReverse ? -randomZ : randomZ;
         setPoints(pre => [
           ...pre,
           new THREE.Vector3(
             Ball.scene.position.x + xValue,
-            Ball.scene.position.y + randomY + 0.5,
-            Ball.scene.position.z + randomZ
+            Ball.scene.position.y + (yReverse ? -randomY : randomY) + 0.5,
+            Ball.scene.position.z + (zReverse ? -randomZ : randomZ)
           ),
         ]);
       }
     }
   });
 
-  console.log(radius);
+  //   console.log(points);
 
   const { camera } = useThree();
   useEffect(() => {
@@ -155,7 +163,7 @@ const Baseball = ({ position = [10, 0, -20] }) => {
         color={"#2C36E3"}
         opacity={1}
         transparent
-        lineWidth={30}
+        lineWidth={20}
       />
       <directionalLight
         ref={refMesh}
