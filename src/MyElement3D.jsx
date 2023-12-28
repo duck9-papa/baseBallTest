@@ -1,14 +1,8 @@
-import { Box, OrbitControls } from "@react-three/drei";
-import { useFrame, useThree } from "@react-three/fiber";
-import { useControls } from "leva";
+import { OrbitControls, useGLTF } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useState } from "react";
-
-const MyBox = props => {
-  const geom = new THREE.BoxGeometry();
-  return <mesh {...props} geometry={geom}></mesh>;
-};
 
 const initialPosition = {
   xPosition: 2,
@@ -34,40 +28,7 @@ for (let i = 0; i < 150; i++) {
 }
 
 const MyElement3D = () => {
-  const [{ xPosition, yPosition, zPosition }, setPosition] =
-    useState(initialPosition);
-
-  const [play, setPlay] = useState(false);
-  const [yReverse, setYRevse] = useState(false);
   const [select, setSelect] = useState(null);
-  useFrame((state, delta) => {
-    if (play) {
-      const deltaValue = !yReverse
-        ? Math.floor(11 - yPosition) * 2
-        : yPosition / 2;
-      const yValue = !yReverse ? yPosition + delta * 4 : yPosition - delta * 4;
-      setPosition({
-        xPosition: xPosition,
-        yPosition: yValue <= 1 ? 1 : yValue,
-        zPosition: zPosition - delta * 16,
-      });
-    }
-    if (yPosition >= 6.5) {
-      setYRevse(true);
-    }
-    if (xPosition <= -10 || zPosition <= -15) {
-      setPlay(false);
-      setPosition(initialPosition);
-      setYRevse(false);
-    }
-    // if (!play) {
-    //   setPlay(true);
-    // }
-  });
-
-  const PlayingBall = () => {
-    setPlay(true);
-  };
 
   return (
     <>
@@ -81,10 +42,7 @@ const MyElement3D = () => {
           key={index}
           onClick={() => setSelect(index === select ? null : index)}>
           <capsuleGeometry args={[0.5, 0, 16, 32]} />
-          {/* <meshStandardMaterial
-            emissive={index === select ? "blue" : item.color}
-            wireframe
-          /> */}
+
           <meshBasicMaterial
             transparent
             opacity={item.color === "red" ? 0.6 : 0.3}
@@ -98,10 +56,7 @@ const MyElement3D = () => {
           key={index}
           onClick={() => setSelect(index === select ? null : index)}>
           <capsuleGeometry args={[0.5, 0, 16, 32]} />
-          {/* <meshStandardMaterial
-            emissive={index === select ? "blue" : item.color}
-            wireframe
-          /> */}
+
           <meshBasicMaterial
             transparent
             opacity={item.color === "red" ? 0.6 : 0.3}

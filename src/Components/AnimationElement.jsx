@@ -184,13 +184,12 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
       if (i === rally.length - 1) {
         dummy.push({
           position: [xValue > 10 ? 30 : -10, 0, zValue],
-          mainAction: "z",
+          mainAction: "out",
         });
       }
     }
     return dummy;
   }, [rally]);
-
   const initialPosition = useMemo(
     () => ({
       xPosition: rallyConvert?.[0]?.position?.[0],
@@ -207,7 +206,7 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
     setPlaying(false);
     setPosition(initialPosition);
     setRallyIndex(0);
-  }, [initialPosition]);
+  }, [initialPosition, setPlaying]);
 
   const { camera } = useThree();
 
@@ -227,11 +226,12 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
       const [currentX, currentY, currentZ] = rallyConvert[rallyIndex].position;
       const [nextX, nextY, nextZ] = rallyConvert[rallyIndex + 1].position;
       const currentAction = rallyConvert[rallyIndex]?.mainAction;
+      const nextAction = rallyConvert[rallyIndex + 1]?.mainAction;
       const actionCoefficient =
         currentAction?.includes("q") || currentAction?.includes("x")
-          ? 1.5
-          : currentAction?.includes("z")
-            ? 2
+          ? 2
+          : nextAction?.includes("out")
+            ? 3
             : 1;
       // check = 현재 인덱스 포지션이 타겟 포지션보다 작은지
       const xCheck = nextX - currentX >= 0;
@@ -251,9 +251,6 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
 
       //  x 좌표 0~100 => z포지션 -40~0
       //  y 좌표 0~100 => x포지션 0~20
-      // currentX = 10 , nextX = 9.73
-      // currentY = 3, nextY = 3
-      // currentZ = -31, nextZ = -25, zCheck = false 델타가 음수로 가야함
 
       const xValue =
         xPosition +
@@ -306,7 +303,7 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
     if (!playing) setPlaying(true);
     setRallyIndex(0);
   };
-
+  console.log(rallyConvert);
   // useEffect(() => {
   //   secondRef.current.geometry = meshRef.current.geometry;
   // }, [xPosition, yPosition, zPosition, rally]);
@@ -321,6 +318,7 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
     ValleyBall.scene.position.y = initialPosition.yPosition;
     ValleyBall.scene.position.z = initialPosition.zPosition;
   }, [ValleyBall.scene, initialPosition]);
+
   return (
     <>
       <directionalLight position={[1, 1, 1]} />

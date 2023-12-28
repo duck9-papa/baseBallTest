@@ -20,6 +20,8 @@ import Coat3D from "./Coat3D.jsx";
 import MyElement3D from "./MyElement3D.jsx";
 import AnimationElement from "./Components/AnimationElement.jsx";
 import AnimationCoat from "./AnimationCoat.jsx";
+import BaseballField from "./BaseballField.jsx";
+import Baseball from "./BaseBall.jsx";
 
 const showView = keyframes`
 from{
@@ -173,7 +175,7 @@ const App = () => {
 
   return (
     <>
-      <div
+      {/* <div
         style={{
           width: "1200px",
           height: "600px",
@@ -251,8 +253,13 @@ const App = () => {
             </div>
           ))}
         </div>
+      </div> */}
+      <div style={{ width: "100%", height: "100%" }}>
+        <Canvas camera={{ fov: 100, far: 10000, position: [-10, 10, 0] }}>
+          <BaseballField />
+          <Baseball />
+        </Canvas>
       </div>
-      <div style={{ width: "1200px", height: "100px" }}></div>
     </>
   );
 };
