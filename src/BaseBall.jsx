@@ -56,7 +56,7 @@ const Baseball = ({ position = [10, 0, -20] }) => {
       const zCoefficient = Math.abs(nextZ - currentZ) / maxima || 0;
 
       const xValue = Number(
-        `${!xCheck ? "-" : "+"}${delta * 16 * xCoefficient}`
+        `${!xCheck ? "-" : "+"}${delta * 12 * xCoefficient}`
       );
       const yValue = Number(
         `${!yCheck ? "-" : "+"}${delta * 16 * yCoefficient}`
