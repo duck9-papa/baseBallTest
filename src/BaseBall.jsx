@@ -59,11 +59,15 @@ const Baseball = ({ data = dummy }) => {
     return arr;
   }, [dataRow, TimeCalculator]);
 
-  const { targetX, targetY, targetZ } = useControls({
-    targetX: { value: 0, max: 20, min: -20, step: 0.01 },
-    targetY: { value: 5, max: 20, min: -20, step: 0.01 },
-    targetZ: { value: 0, max: 20, min: -20, step: 0.01 },
-  });
+  const { targetX, targetY, targetZ, SZ_WIDTH, SZ_FRONT, SZ_SIDE } =
+    useControls({
+      targetX: { value: 0, max: 20, min: -20, step: 0.01 },
+      targetY: { value: 5, max: 20, min: -20, step: 0.01 },
+      targetZ: { value: 0, max: 20, min: -20, step: 0.01 },
+      SZ_WIDTH: { value: 1, max: 3, min: 0.5, step: 0.01 },
+      SZ_FRONT: { value: 0, max: 3, min: -3, step: 0.01 },
+      SZ_SIDE: { value: 0, max: 3, min: -3, step: 0.01 },
+    });
 
   const Ball = useGLTF("/models/baseball.glb");
 
@@ -145,6 +149,9 @@ const Baseball = ({ data = dummy }) => {
   });
 
   const { camera } = useThree();
+  const SZ_HEIGHT = useMemo(() => {
+    return dataRow.TOP_SZ - dataRow.BOTTOM_SZ;
+  }, [dataRow]);
   const curveRef = useRef();
   useEffect(() => {
     Ball.scene.position.x = basePosition[0];
@@ -178,7 +185,7 @@ const Baseball = ({ data = dummy }) => {
     let arr = [];
     for (let i = 1; i < 11; i++) {
       const y = Math.ceil(i / 2);
-      const z = i % 2 === 0 ? 5 : 4;
+      const z = i % 2 === 0 ? 8 : 7;
       const position = [0, y, z];
 
       arr.push(
@@ -213,9 +220,9 @@ const Baseball = ({ data = dummy }) => {
 
       <mesh
         ref={cylinderRef}
-        position={[0, 3, 0]}
-        rotation={[0, 135 * (180 / Math.PI), 0]}>
-        <cylinderGeometry args={[1, 1, 2, 5, 1]} />
+        position={[SZ_FRONT, 3, SZ_SIDE]}
+        rotation={[0, 110 * (180 / Math.PI), 0]}>
+        <cylinderGeometry args={[SZ_WIDTH, SZ_WIDTH, SZ_HEIGHT, 6, 1]} />
         <lineBasicMaterial
           transparent
           opacity={0.2}
@@ -227,7 +234,7 @@ const Baseball = ({ data = dummy }) => {
       {selectMeshs}
       {!playing && (
         <mesh
-          position={[0, 3, 6]}
+          position={[0, 3, 9]}
           scale={[0.5, 0.5, 0.5]}
           onClick={() => setPlaying(true)}>
           <boxGeometry />
