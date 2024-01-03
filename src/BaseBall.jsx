@@ -1,30 +1,65 @@
-import { Line, OrbitControls, useGLTF, useHelper } from "@react-three/drei";
+import { Line, useGLTF, Tube } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
-import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
-const LINE_NB_POINTS = 42;
-const basePosition = [40, 5, 0];
-const initialPoints = [
-  new THREE.Vector3(...basePosition),
-  new THREE.Vector3(...basePosition),
-];
+import { useEffect, useMemo, useRef, useState } from "react";
+import dummy from "./dummyBallData";
 
-const Baseball = ({ position = [10, 0, -20] }) => {
+// 초기 속도, 가속도, 시간
+const VCalculator = (initial, acceleration, time) => {
+  return initial + acceleration * time;
+};
+
+const Baseball = ({ data = dummy }) => {
+  const TimeCalculator = (row, Y) => {
+    return (
+      (-row.VY0 - Math.sqrt(Math.pow(row.VY0, 2) - 2 * row.AY * (row.Y0 - Y))) /
+      row.AY
+    );
+  };
+
+  //
+
   const refMesh = useRef();
   const cylinderRef = useRef();
-  const [orbitHeight, setOrbitHeight] = useState(0);
+  const [select, setSelect] = useState(1);
+
+  const dataRow = useMemo(() => {
+    return data[select - 1];
+  }, [data, select]);
+  const basePosition = useMemo(
+    () => [dataRow.Y0, dataRow.Z0, dataRow.X0],
+    [dataRow]
+  );
+
+  const initialPoints = [
+    new THREE.Vector3(basePosition[0], basePosition[1] + 0.5, basePosition[2]),
+    new THREE.Vector3(basePosition[0], basePosition[1] + 0.5, basePosition[2]),
+  ];
+
+  const [count, setCount] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [points, setPoints] = useState(initialPoints);
-  const [radius, setRadius] = useState(0);
-  const [yReverse, setYReverse] = useState(false);
-  const [zReverse, setZReverse] = useState(false);
 
-  const { cameraX, cameraY, cameraZ, targetX, targetY, targetZ } = useControls({
-    cameraX: { value: -5, max: 20, min: -20, step: 0.01 },
-    cameraY: { value: 5, max: 20, min: -20, step: 0.01 },
-    cameraZ: { value: 10, max: 20, min: -20, step: 0.01 },
+  // 수식의 y축이 캔버스의 X축 수식의 Z축이 캔버스의 Y축 수식의X축이 캔버스의 Z축 [Y,Z,X] 형식으로 포지션 값 추가
+  const dataPoints = useMemo(() => {
+    let arr = [];
+    for (let i = 50; i >= 0; i--) {
+      const elapsedTime = TimeCalculator(dataRow, i);
+
+      const xSpeed = VCalculator(dataRow.VX0, dataRow.AX, elapsedTime);
+
+      const zSpeed = VCalculator(dataRow.VZ0, dataRow.AZ, elapsedTime);
+
+      const xValue = dataRow.X0 + xSpeed * elapsedTime;
+      const zValue = dataRow.Z0 + zSpeed * elapsedTime;
+      arr.push([i, zValue, xValue]);
+    }
+    return arr;
+  }, [dataRow, TimeCalculator]);
+
+  const { targetX, targetY, targetZ } = useControls({
     targetX: { value: 0, max: 20, min: -20, step: 0.01 },
     targetY: { value: 5, max: 20, min: -20, step: 0.01 },
     targetZ: { value: 0, max: 20, min: -20, step: 0.01 },
@@ -34,112 +69,95 @@ const Baseball = ({ position = [10, 0, -20] }) => {
 
   useFrame((_, delta) => {
     camera.lookAt(targetX, targetY, targetZ);
-    camera.position.x = cameraX;
-    camera.position.y = cameraY;
-    camera.position.z = cameraZ;
-    Ball.scene.rotateY(delta * 2);
+
+    Ball.scene.rotateY(delta * (playing ? 6 : 2));
     if (playing) {
-      const [currentX, currentY, currentZ] = basePosition;
-      const [nextX, nextY, nextZ] = [1, 5.5, 0];
-      const maxima = Math.max(
-        ...[
-          Math.abs(nextX - currentX),
-          Math.abs(nextY - currentY),
-          Math.abs(nextZ - currentZ),
-        ]
-      );
-      const xCheck = nextX - currentX >= 0;
-      const yCheck = nextY - currentY >= 0;
-      const zCheck = nextZ - currentZ >= 0;
-      const xCoefficient = Math.abs(nextX - currentX) / maxima || 0;
-      const yCoefficient = Math.abs(nextY - currentY) / maxima || 0;
-      const zCoefficient = Math.abs(nextZ - currentZ) / maxima || 0;
+      if (dataPoints[count + 1]) {
+        const [currentX, currentY, currentZ] = dataPoints[count];
+        const [nextX, nextY, nextZ] = dataPoints[count + 1];
 
-      const xValue = Number(
-        `${!xCheck ? "-" : "+"}${delta * 12 * xCoefficient}`
-      );
-      const yValue = Number(
-        `${!yCheck ? "-" : "+"}${delta * 16 * yCoefficient}`
-      );
-      const zValue = Number(
-        `${!zCheck ? "-" : "+"}${delta * 16 * zCoefficient}`
-      );
+        const maxima = Math.max(
+          ...[
+            Math.abs(nextX - currentX),
+            Math.abs(nextY - currentY),
+            Math.abs(nextZ - currentZ),
+          ]
+        );
+        const xCheck = nextX - currentX >= 0;
+        const yCheck = nextY - currentY >= 0;
+        const zCheck = nextZ - currentZ >= 0;
+        const xCoefficient = Math.abs(nextX - currentX) / maxima || 0;
+        const yCoefficient = Math.abs(nextY - currentY) / maxima || 0;
+        const zCoefficient = Math.abs(nextZ - currentZ) / maxima || 0;
 
-      if (
-        (xCheck && Ball.scene.position.x >= nextX) ||
-        (!xCheck && Ball.scene.position.x <= nextX)
-        //   &&
-        // ((yCheck && Ball.scene.position.y >= nextY) ||
-        //   (!yCheck && Ball.scene.position.y <= nextY)) &&
-        // ((zCheck && Ball.scene.position.z >= nextZ) ||
-        //   (!zCheck && Ball.scene.position.z <= nextZ))
-      ) {
+        let xValue =
+          Ball.scene.position.x +
+          Number(`${!xCheck ? "-" : "+"}${delta * 32 * xCoefficient}`);
+        let yValue =
+          Ball.scene.position.y +
+          Number(`${!yCheck ? "-" : "+"}${delta * 32 * yCoefficient}`);
+        let zValue =
+          Ball.scene.position.z +
+          Number(`${!zCheck ? "-" : "+"}${delta * 32 * zCoefficient}`);
+
+        const xPosition =
+          (xCheck && xValue > nextX) || (!xCheck && xValue < nextX)
+            ? nextX
+            : xValue;
+        const yPosition =
+          (yCheck && yValue > nextX) || (!yCheck && yValue < nextY)
+            ? nextY
+            : yValue;
+        const zPosition =
+          (zCheck && zValue > nextZ) || (!zCheck && zValue < nextZ)
+            ? nextZ
+            : zValue;
+        if (
+          (xCheck && Ball.scene.position.x >= nextX) ||
+          (!xCheck &&
+            Ball.scene.position.x <= nextX &&
+            ((yCheck && Ball.scene.position.y >= nextY) ||
+              (!yCheck && Ball.scene.position.y <= nextY)) &&
+            ((zCheck && Ball.scene.position.z >= nextZ) ||
+              (!zCheck && Ball.scene.position.z <= nextZ)))
+        ) {
+          setCount(pre => pre + 1);
+          setPoints(pre => [
+            ...pre,
+            new THREE.Vector3(nextX, nextY + 0.5, nextZ),
+          ]);
+        } else {
+          Ball.scene.position.x = xPosition;
+          Ball.scene.position.y = yPosition;
+          Ball.scene.position.z = zPosition;
+        }
+      } else {
         setTimeout(() => {
+          setCount(0);
+          setPoints(initialPoints);
+          setPlaying(false);
           Ball.scene.position.x = basePosition[0];
           Ball.scene.position.y = basePosition[1];
           Ball.scene.position.z = basePosition[2];
-          setPlaying(false);
-          setPoints(initialPoints);
-          setYReverse(false);
-          setZReverse(false);
-        }, 1000);
-      } else {
-        const randomX = Math.random() * delta * 4;
-        const randomY = Math.random() * delta * 3;
-        const randomZ = Math.random() * delta * 3;
-        console.log(Ball.scene.position.y + randomY, yReverse);
-
-        if (Ball.scene.position.y + randomY >= 7 && !yReverse) {
-          console.log("dd");
-          setYReverse(true);
-        }
-        if (Ball.scene.position.z + randomZ >= 1 && !zReverse) {
-          setZReverse(true);
-        }
-        // Ball.scene.position.x += xValue;
-        // Ball.scene.position.y += yValue;
-        // Ball.scene.position.z += zValue;
-        Ball.scene.position.x += xValue;
-        Ball.scene.position.y += yReverse ? -randomY : randomY;
-        Ball.scene.position.z += zReverse ? -randomZ : randomZ;
-        setPoints(pre => [
-          ...pre,
-          new THREE.Vector3(
-            Ball.scene.position.x + xValue,
-            Ball.scene.position.y + (yReverse ? -randomY : randomY) + 0.5,
-            Ball.scene.position.z + (zReverse ? -randomZ : randomZ)
-          ),
-        ]);
+        }, 500);
       }
     }
   });
 
-  //   console.log(points);
-
   const { camera } = useThree();
+  const curveRef = useRef();
   useEffect(() => {
-    Ball.scene.position.x = 40;
-    Ball.scene.position.y = 5;
-    Ball.scene.position.z = 0;
+    Ball.scene.position.x = basePosition[0];
+    Ball.scene.position.y = basePosition[1];
+    Ball.scene.position.z = basePosition[2];
 
     Ball.scene.scale.x = 0.01;
     Ball.scene.scale.y = 0.01;
     Ball.scene.scale.z = 0.01;
     Ball.scene.receiveShadow = false;
     Ball.scene.castShadow = true;
+  }, [Ball.scene, curveRef, basePosition]);
 
-    Ball.scene.traverse(item => {
-      if (item.isMesh) {
-        const geomBbox = item.geometry.boundingBox;
-        const max = geomBbox.max;
-        const min = geomBbox.min;
-
-        setRadius(Math.abs(max.y - min.y) / 2);
-      }
-    });
-  }, [Ball.scene]);
-
-  const { scene } = useThree();
   const curve = useMemo(() => {
     const curveMemo = new THREE.CatmullRomCurve3(
       points,
@@ -153,51 +171,72 @@ const Baseball = ({ position = [10, 0, -20] }) => {
 
   const linePoints =
     useMemo(() => {
-      return curve.getPoints(500);
+      return curve.getPoints(50);
     }, [curve]) || [];
+
+  const selectMeshs = useMemo(() => {
+    let arr = [];
+    for (let i = 1; i < 11; i++) {
+      const y = Math.ceil(i / 2);
+      const z = i % 2 === 0 ? 5 : 4;
+      const position = [0, y, z];
+
+      arr.push(
+        <mesh
+          key={`${i}meshKey`}
+          position={position}
+          scale={[0.5, 0.5, 0.5]}
+          onClick={() => setSelect(i)}>
+          <boxGeometry />
+          <lineBasicMaterial
+            transparent
+            opacity={0.8}
+            color={select === i ? "red" : "white"}
+          />
+        </mesh>
+      );
+    }
+    return arr;
+  }, [select]);
 
   return (
     <>
-      <Line
-        points={linePoints}
-        color={"#2C36E3"}
-        opacity={1}
-        transparent
-        lineWidth={20}
-      />
+      <Line points={linePoints} color={"#0095d3"} lineWidth={30} />
+
       <directionalLight
         ref={refMesh}
         intensity={1}
         position={[40, 10, 0]}
         target-position={[40, 5, 0]}
       />
-      <ambientLight intensity={0.5} />
-      {/* {orbitHeight && (
-        <mesh position={[40, 5, 0]} rotation={[0, 0, 120 * (180 / Math.PI)]}>
-          <cylinderGeometry args={[1, 1, orbitHeight, 32, 32]} />
-          <meshBasicMaterial transparent opacity={0.5} color={"blue"} />
-        </mesh>
-      )} */}
+      <ambientLight intensity={2} />
+
       <mesh
         ref={cylinderRef}
-        position={[0, 5, 0]}
+        position={[0, 3, 0]}
         rotation={[0, 135 * (180 / Math.PI), 0]}>
         <cylinderGeometry args={[1, 1, 2, 5, 1]} />
         <lineBasicMaterial
           transparent
           opacity={0.2}
-          color={"white"}
+          color={"black"}
           wireframe
         />
       </mesh>
       <primitive object={Ball.scene} />
+      {selectMeshs}
       {!playing && (
         <mesh
-          position={[0, 5, 5]}
+          position={[0, 3, 6]}
           scale={[0.5, 0.5, 0.5]}
           onClick={() => setPlaying(true)}>
           <boxGeometry />
-          <meshBasicMaterial />
+          <lineBasicMaterial
+            transparent
+            opacity={0.2}
+            color={"black"}
+            wireframe
+          />
         </mesh>
       )}
     </>

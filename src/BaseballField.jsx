@@ -8,11 +8,13 @@ const BaseballField = ({ position = [10, 0, -20] }) => {
 
   const Field = useGLTF("/models/baseball_field.glb");
   useEffect(() => {
-    Field.scene.position.x = 98;
-    Field.scene.position.z = 23;
-    Field.scene.scale.z = 0.1;
-    Field.scene.scale.x = 0.1;
-    Field.scene.scale.y = 0.1;
+    Field.scene.position.x = 135;
+    Field.scene.position.z = 32;
+    Field.scene.scale.z = 0.14;
+    Field.scene.scale.x = 0.14;
+    Field.scene.scale.y = 0.14;
+    Field.scene.receiveShadow = false;
+    Field.scene.castShadow = true;
   }, [Field.scene]);
 
   return (
@@ -23,7 +25,7 @@ const BaseballField = ({ position = [10, 0, -20] }) => {
       {/* <axesHelper scale={5} /> */}
       <primitive object={Field.scene} />
 
-      {/* <OrbitControls /> */}
+      <OrbitControls />
     </>
   );
 };

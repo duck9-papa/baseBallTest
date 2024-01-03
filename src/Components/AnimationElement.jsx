@@ -211,16 +211,13 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
   const { camera } = useThree();
 
   const [rallyIndex, setRallyIndex] = useState(0);
-  const ValleyBall = useGLTF("/models/ball.glb");
+  const VolleyBall = useGLTF("/models/ball.glb");
 
   useFrame((state, delta) => {
     camera.lookAt(10, 0, -20);
-    // meshRef.current.rotation.x += delta;
-    // meshRef.current.rotation.y += delta;
-    // secondRef.current.rotation.x += delta;
-    // secondRef.current.rotation.y += delta;
-    ValleyBall.scene.rotateX(delta);
-    ValleyBall.scene.rotateY(delta);
+
+    VolleyBall.scene.rotateX(delta);
+    VolleyBall.scene.rotateY(delta);
 
     if (playing && rallyConvert[rallyIndex + 1]) {
       const [currentX, currentY, currentZ] = rallyConvert[rallyIndex].position;
@@ -274,9 +271,10 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
           }`
         );
       setPosition({ xPosition: xValue, yPosition: yValue, zPosition: zValue });
-      ValleyBall.scene.position.x = xValue;
-      ValleyBall.scene.position.y = yValue;
-      ValleyBall.scene.position.z = zValue;
+
+      VolleyBall.scene.position.x = xValue;
+      VolleyBall.scene.position.y = yValue;
+      VolleyBall.scene.position.z = zValue;
 
       if (
         ((xCheck && xPosition >= nextX) || (!xCheck && xPosition <= nextX)) &&
@@ -292,9 +290,9 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
           setPlaying(false);
           setPosition(initialPosition);
           setRallyIndex(0);
-          ValleyBall.scene.position.x = initialPosition.xPosition;
-          ValleyBall.scene.position.y = initialPosition.yPosition;
-          ValleyBall.scene.position.z = initialPosition.zPosition;
+          VolleyBall.scene.position.x = initialPosition.xPosition;
+          VolleyBall.scene.position.y = initialPosition.yPosition;
+          VolleyBall.scene.position.z = initialPosition.zPosition;
         }, 500);
     }
   });
@@ -303,21 +301,17 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
     if (!playing) setPlaying(true);
     setRallyIndex(0);
   };
-  console.log(rallyConvert);
-  // useEffect(() => {
-  //   secondRef.current.geometry = meshRef.current.geometry;
-  // }, [xPosition, yPosition, zPosition, rally]);
 
   useEffect(() => {
-    ValleyBall.scene.traverse(item => {});
+    VolleyBall.scene.traverse(item => {});
 
-    ValleyBall.scene.scale.x = 0.02;
-    ValleyBall.scene.scale.y = 0.02;
-    ValleyBall.scene.scale.z = 0.02;
-    ValleyBall.scene.position.x = initialPosition.xPosition;
-    ValleyBall.scene.position.y = initialPosition.yPosition;
-    ValleyBall.scene.position.z = initialPosition.zPosition;
-  }, [ValleyBall.scene, initialPosition]);
+    VolleyBall.scene.scale.x = 0.02;
+    VolleyBall.scene.scale.y = 0.02;
+    VolleyBall.scene.scale.z = 0.02;
+    VolleyBall.scene.position.x = initialPosition.xPosition;
+    VolleyBall.scene.position.y = initialPosition.yPosition;
+    VolleyBall.scene.position.z = initialPosition.zPosition;
+  }, [VolleyBall.scene, initialPosition]);
 
   return (
     <>
@@ -325,7 +319,7 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
       <ambientLight color={"#FFFFFF"} />
       <OrbitControls />
 
-      <primitive object={ValleyBall.scene} onClick={PlayingBall} />
+      <primitive object={VolleyBall.scene} onClick={PlayingBall} />
       {/* <mesh
         ref={meshRef}
         position={[xPosition, yPosition, zPosition]}
