@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
 import * as THREE from "three";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dummy from "./dummyBallData";
 
 // 초기 속도, 가속도, 시간
@@ -12,12 +12,12 @@ const VCalculator = (initial, acceleration, time) => {
 };
 
 const Baseball = ({ data = dummy }) => {
-  const TimeCalculator = (row, Y) => {
+  const TimeCalculator = useCallback((row, Y) => {
     return (
       (-row.VY0 - Math.sqrt(Math.pow(row.VY0, 2) - 2 * row.AY * (row.Y0 - Y))) /
       row.AY
     );
-  };
+  }, []);
 
   //
 
@@ -58,8 +58,8 @@ const Baseball = ({ data = dummy }) => {
     }
     return arr;
   }, [dataRow, TimeCalculator]);
-
-  const { targetX, targetY, targetZ, SZ_WIDTH, SZ_FRONT, SZ_SIDE } =
+  console.log(dataPoints);
+  const { targetX, targetY, targetZ, SZ_WIDTH, SZ_FRONT, SZ_SIDE, BALL_SPEED } =
     useControls({
       targetX: { value: 0, max: 20, min: -20, step: 0.01 },
       targetY: { value: 5, max: 20, min: -20, step: 0.01 },
@@ -67,6 +67,7 @@ const Baseball = ({ data = dummy }) => {
       SZ_WIDTH: { value: 1, max: 3, min: 0.5, step: 0.01 },
       SZ_FRONT: { value: 0, max: 3, min: -3, step: 0.01 },
       SZ_SIDE: { value: 0, max: 3, min: -3, step: 0.01 },
+      BALL_SPEED: { value: 32, max: 128, min: 1, step: 1 },
     });
 
   const Ball = useGLTF("/models/baseball.glb");
@@ -96,13 +97,13 @@ const Baseball = ({ data = dummy }) => {
 
         let xValue =
           Ball.scene.position.x +
-          Number(`${!xCheck ? "-" : "+"}${delta * 32 * xCoefficient}`);
+          Number(`${!xCheck ? "-" : "+"}${delta * BALL_SPEED * xCoefficient}`);
         let yValue =
           Ball.scene.position.y +
-          Number(`${!yCheck ? "-" : "+"}${delta * 32 * yCoefficient}`);
+          Number(`${!yCheck ? "-" : "+"}${delta * BALL_SPEED * yCoefficient}`);
         let zValue =
           Ball.scene.position.z +
-          Number(`${!zCheck ? "-" : "+"}${delta * 32 * zCoefficient}`);
+          Number(`${!zCheck ? "-" : "+"}${delta * BALL_SPEED * zCoefficient}`);
 
         const xPosition =
           (xCheck && xValue > nextX) || (!xCheck && xValue < nextX)
