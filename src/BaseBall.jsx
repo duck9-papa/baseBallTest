@@ -65,7 +65,7 @@ const Baseball = ({ data = dummy }) => {
       targetX: { value: 0, max: 20, min: -20, step: 0.01 },
       targetY: { value: 5, max: 20, min: -20, step: 0.01 },
       targetZ: { value: 0, max: 20, min: -20, step: 0.01 },
-      SZ_WIDTH: { value: 1, max: 3, min: 0.5, step: 0.01 },
+      SZ_WIDTH: { value: 1.8, max: 3, min: 0.5, step: 0.01 },
       SZ_FRONT: { value: 0, max: 3, min: -3, step: 0.01 },
       SZ_SIDE: { value: 0, max: 3, min: -3, step: 0.01 },
       BALL_SPEED: { value: 32, max: 128, min: 1, step: 1 },
