@@ -1,4 +1,4 @@
-import { Line, useGLTF, Tube } from "@react-three/drei";
+import { Line, useGLTF, Tube, Text } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useControls } from "leva";
 import * as THREE from "three";
@@ -238,6 +238,32 @@ const Baseball = ({ data = dummy }) => {
     return arr;
   }, [select, playing]);
 
+  useEffect(() => {
+    const keyEvent = e => {
+      switch (e.code) {
+        case "ArrowRight":
+          if (!playing) {
+            setSelect(pre => (pre === data.length ? 1 : pre + 1));
+          }
+
+          break;
+        case "ArrowLeft":
+          if (!playing) {
+            setSelect(pre => (pre === 1 ? data.length : pre - 1));
+          }
+          break;
+        case "Space":
+          if (!playing) {
+            setPlaying(true);
+          }
+      }
+    };
+
+    document.addEventListener("keydown", keyEvent);
+
+    return () => document.removeEventListener("keydown", keyEvent);
+  }, [playing, data]);
+
   return (
     <>
       {/* <Line points={linePoints} color={"#0095d3"} lineWidth={30} /> */}
@@ -267,11 +293,39 @@ const Baseball = ({ data = dummy }) => {
       </mesh>
 
       <primitive object={Ball.scene} />
-      {selectMeshs}
+      <Text
+        rotation={[0, 270 * (Math.PI / 180), 0]}
+        position={[0, 5, 8]}
+        onClick={() => {
+          if (!playing) {
+            setSelect(pre => (pre === 1 ? data.length : pre - 1));
+          }
+        }}>
+        <meshBasicMaterial color={"black"} />
+        {"<"}
+      </Text>
+
+      <Text rotation={[0, 270 * (Math.PI / 180), 0]} position={[0, 5, 9]}>
+        <meshBasicMaterial color={"black"} />
+
+        {select}
+      </Text>
+      <Text
+        rotation={[0, 270 * (Math.PI / 180), 0]}
+        position={[0, 5, 10]}
+        onClick={() => {
+          if (!playing) {
+            setSelect(pre => (pre === data.length ? 1 : pre + 1));
+          }
+        }}>
+        <meshBasicMaterial color={"black"} />
+
+        {">"}
+      </Text>
       {!playing && (
         <mesh
           position={[0, 3, 9]}
-          scale={[0.5, 0.5, 0.5]}
+          scale={[1, 1, 1]}
           onClick={() => setPlaying(true)}>
           <boxGeometry />
           <lineBasicMaterial
