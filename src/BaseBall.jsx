@@ -71,7 +71,7 @@ const Baseball = ({ data = dummy }) => {
       SZ_WIDTH: { value: 1.8, max: 3, min: 0.5, step: 0.01 },
       SZ_FRONT: { value: 0, max: 3, min: -3, step: 0.01 },
       SZ_SIDE: { value: 0, max: 3, min: -3, step: 0.01 },
-      BALL_SPEED: { value: 32, max: 128, min: 1, step: 1 },
+      BALL_SPEED: { value: 100, max: 150, min: 1, step: 1 },
     });
 
   const Ball = useGLTF("/models/baseball.glb");
@@ -180,7 +180,7 @@ const Baseball = ({ data = dummy }) => {
           Ball.scene.position.x = basePosition[0];
           Ball.scene.position.y = basePosition[1];
           Ball.scene.position.z = basePosition[2];
-        }, 500);
+        }, 300);
       }
     }
   });
