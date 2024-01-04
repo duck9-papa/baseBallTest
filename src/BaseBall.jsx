@@ -223,7 +223,9 @@ const Baseball = ({ data = dummy }) => {
           key={`${i}meshKey`}
           position={position}
           scale={[0.5, 0.5, 0.5]}
-          onClick={() => setSelect(i)}>
+          onClick={() => {
+            if (!playing) setSelect(i);
+          }}>
           <boxGeometry />
           <lineBasicMaterial
             transparent
@@ -234,7 +236,7 @@ const Baseball = ({ data = dummy }) => {
       );
     }
     return arr;
-  }, [select]);
+  }, [select, playing]);
 
   return (
     <>
@@ -248,11 +250,8 @@ const Baseball = ({ data = dummy }) => {
       />
       <ambientLight intensity={2} />
 
-      <mesh
-        ref={cylinderRef}
-        position={[SZ_FRONT, 3, SZ_SIDE]}
-        rotation={[0, 110 * (180 / Math.PI), 0]}>
-        <cylinderGeometry args={[SZ_WIDTH, SZ_WIDTH, SZ_HEIGHT, 6, 1]} />
+      <mesh ref={cylinderRef} position={[SZ_FRONT, 3, SZ_SIDE]}>
+        <boxGeometry args={[SZ_WIDTH, SZ_HEIGHT, SZ_WIDTH]} />
         <lineBasicMaterial
           color={"black"}
           wireframe
@@ -261,10 +260,8 @@ const Baseball = ({ data = dummy }) => {
         />
       </mesh>
 
-      <mesh
-        position={[SZ_FRONT, 3, SZ_SIDE]}
-        rotation={[0, 110 * (180 / Math.PI), 0]}>
-        <cylinderGeometry args={[SZ_WIDTH, SZ_WIDTH, SZ_HEIGHT, 6, 1]} />
+      <mesh position={[SZ_FRONT, 3, SZ_SIDE]}>
+        <boxGeometry args={[SZ_WIDTH, SZ_HEIGHT, SZ_WIDTH]} />
 
         <meshStandardMaterial transparent opacity={0.5} color={"white"} />
       </mesh>
