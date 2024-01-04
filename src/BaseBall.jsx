@@ -46,20 +46,23 @@ const Baseball = ({ data = dummy }) => {
   const dataPoints = useMemo(() => {
     let arr = [];
     for (let i = 50; i >= 0; i--) {
-      // const yFeet = i / 2;
-      // console.log(yFeet);
       const elapsedTime = TimeCalculator(dataRow, i);
 
       const xSpeed = VCalculator(dataRow.VX0, dataRow.AX, elapsedTime);
-
+      const ySpeed = VCalculator(dataRow.VY0, dataRow.AY, elapsedTime);
       const zSpeed = VCalculator(dataRow.VZ0, dataRow.AZ, elapsedTime);
 
       const xValue = dataRow.X0 + xSpeed * elapsedTime;
+      const yValue = dataRow.Y0 + ySpeed * elapsedTime;
       const zValue = dataRow.Z0 + zSpeed * elapsedTime;
+      if (i > 30) {
+        console.log(i, dataRow.Z0, zSpeed * elapsedTime, zValue);
+      }
       arr.push([i, zValue, xValue]);
     }
     return arr;
   }, [dataRow, TimeCalculator]);
+  // console.log(dataPoints, dataRow);
   const { targetX, targetY, targetZ, SZ_WIDTH, SZ_FRONT, SZ_SIDE, BALL_SPEED } =
     useControls({
       targetX: { value: 0, max: 20, min: -20, step: 0.01 },
@@ -92,6 +95,7 @@ const Baseball = ({ data = dummy }) => {
         const xCheck = nextX - currentX >= 0;
         const yCheck = nextY - currentY >= 0;
         const zCheck = nextZ - currentZ >= 0;
+        // console.log(xCheck, yCheck, zCheck);
         const xCoefficient = Math.abs(nextX - currentX) / maxima || 0;
         const yCoefficient = Math.abs(nextY - currentY) / maxima || 0;
         const zCoefficient = Math.abs(nextZ - currentZ) / maxima || 0;
@@ -107,25 +111,25 @@ const Baseball = ({ data = dummy }) => {
           Number(`${!zCheck ? "-" : "+"}${delta * BALL_SPEED * zCoefficient}`);
 
         const xPosition =
-          (xCheck && xValue > nextX) || (!xCheck && xValue < nextX)
+          (xCheck && xValue >= nextX) || (!xCheck && xValue <= nextX)
             ? nextX
             : xValue;
         const yPosition =
-          (yCheck && yValue > nextX) || (!yCheck && yValue < nextY)
+          (yCheck && yValue >= nextX) || (!yCheck && yValue <= nextY)
             ? nextY
             : yValue;
         const zPosition =
-          (zCheck && zValue > nextZ) || (!zCheck && zValue < nextZ)
+          (zCheck && zValue >= nextZ) || (!zCheck && zValue <= nextZ)
             ? nextZ
             : zValue;
+
         if (
-          (xCheck && Ball.scene.position.x >= nextX) ||
+          (xCheck && xPosition >= nextX) ||
           (!xCheck &&
-            Ball.scene.position.x <= nextX &&
-            ((yCheck && Ball.scene.position.y >= nextY) ||
-              (!yCheck && Ball.scene.position.y <= nextY)) &&
-            ((zCheck && Ball.scene.position.z >= nextZ) ||
-              (!zCheck && Ball.scene.position.z <= nextZ)))
+            xPosition <= nextX &&
+            ((yCheck && yPosition >= nextY) ||
+              (!yCheck && yPosition <= nextY)) &&
+            ((zCheck && zPosition >= nextZ) || (!zCheck && zPosition <= nextZ)))
         ) {
           setCount(pre => pre + 1);
           setPoints(pre => {
@@ -156,10 +160,13 @@ const Baseball = ({ data = dummy }) => {
             setPreviousTube(mesh);
             return value;
           });
+          Ball.scene.position.x = nextX;
+          Ball.scene.position.y = nextY;
+          Ball.scene.position.z = nextZ;
         } else {
-          Ball.scene.position.x = xPosition;
-          Ball.scene.position.y = yPosition;
-          Ball.scene.position.z = zPosition;
+          Ball.scene.position.x = xValue;
+          Ball.scene.position.y = yValue;
+          Ball.scene.position.z = zValue;
         }
       } else {
         setTimeout(() => {
@@ -194,49 +201,6 @@ const Baseball = ({ data = dummy }) => {
     Ball.scene.receiveShadow = false;
     Ball.scene.castShadow = true;
   }, [Ball.scene, curveRef, basePosition]);
-
-  const curve = useMemo(() => {
-    const curveMemo = new THREE.CatmullRomCurve3(
-      points,
-      false,
-      "catmullrom",
-      0.5
-    );
-
-    return curveMemo;
-  }, [points]);
-
-  const linePoints =
-    useMemo(() => {
-      return curve.getPoints(100);
-    }, [curve]) || [];
-
-  const selectMeshs = useMemo(() => {
-    let arr = [];
-    for (let i = 1; i < 11; i++) {
-      const y = Math.ceil(i / 2);
-      const z = i % 2 === 0 ? 8 : 7;
-      const position = [0, y, z];
-
-      arr.push(
-        <mesh
-          key={`${i}meshKey`}
-          position={position}
-          scale={[0.5, 0.5, 0.5]}
-          onClick={() => {
-            if (!playing) setSelect(i);
-          }}>
-          <boxGeometry />
-          <lineBasicMaterial
-            transparent
-            opacity={0.8}
-            color={select === i ? "red" : "white"}
-          />
-        </mesh>
-      );
-    }
-    return arr;
-  }, [select, playing]);
 
   useEffect(() => {
     const keyEvent = e => {
