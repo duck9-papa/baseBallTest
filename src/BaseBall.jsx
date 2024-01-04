@@ -41,11 +41,13 @@ const Baseball = ({ data = dummy }) => {
   const [count, setCount] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [points, setPoints] = useState(initialPoints);
-
+  const [previousTube, setPreviousTube] = useState(null);
   // 수식의 y축이 캔버스의 X축 수식의 Z축이 캔버스의 Y축 수식의X축이 캔버스의 Z축 [Y,Z,X] 형식으로 포지션 값 추가
   const dataPoints = useMemo(() => {
     let arr = [];
     for (let i = 50; i >= 0; i--) {
+      // const yFeet = i / 2;
+      // console.log(yFeet);
       const elapsedTime = TimeCalculator(dataRow, i);
 
       const xSpeed = VCalculator(dataRow.VX0, dataRow.AX, elapsedTime);
@@ -58,7 +60,6 @@ const Baseball = ({ data = dummy }) => {
     }
     return arr;
   }, [dataRow, TimeCalculator]);
-  console.log(dataPoints);
   const { targetX, targetY, targetZ, SZ_WIDTH, SZ_FRONT, SZ_SIDE, BALL_SPEED } =
     useControls({
       targetX: { value: 0, max: 20, min: -20, step: 0.01 },
@@ -127,10 +128,34 @@ const Baseball = ({ data = dummy }) => {
               (!zCheck && Ball.scene.position.z <= nextZ)))
         ) {
           setCount(pre => pre + 1);
-          setPoints(pre => [
-            ...pre,
-            new THREE.Vector3(nextX, nextY + 0.5, nextZ),
-          ]);
+          setPoints(pre => {
+            const value = [
+              ...pre,
+              new THREE.Vector3(nextX, nextY + 0.5, nextZ),
+            ];
+            if (previousTube) {
+              scene.remove(previousTube);
+            }
+
+            const path = new THREE.CatmullRomCurve3(value);
+            const tubeGeometry = new THREE.TubeGeometry(
+              path,
+              value.length,
+              0.8,
+              10,
+              false
+            );
+            const material = new THREE.MeshStandardMaterial({
+              color: "white",
+              transparent: true,
+              opacity: 0.5,
+              wireframe: true,
+            });
+            const mesh = new THREE.Mesh(tubeGeometry, material);
+            scene.add(mesh);
+            setPreviousTube(mesh);
+            return value;
+          });
         } else {
           Ball.scene.position.x = xPosition;
           Ball.scene.position.y = yPosition;
@@ -138,9 +163,13 @@ const Baseball = ({ data = dummy }) => {
         }
       } else {
         setTimeout(() => {
+          if (previousTube) {
+            scene.remove(previousTube);
+          }
           setCount(0);
           setPoints(initialPoints);
           setPlaying(false);
+          setPreviousTube(null);
           Ball.scene.position.x = basePosition[0];
           Ball.scene.position.y = basePosition[1];
           Ball.scene.position.z = basePosition[2];
@@ -149,7 +178,7 @@ const Baseball = ({ data = dummy }) => {
     }
   });
 
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
   const SZ_HEIGHT = useMemo(() => {
     return dataRow.TOP_SZ - dataRow.BOTTOM_SZ;
   }, [dataRow]);
@@ -179,7 +208,7 @@ const Baseball = ({ data = dummy }) => {
 
   const linePoints =
     useMemo(() => {
-      return curve.getPoints(50);
+      return curve.getPoints(100);
     }, [curve]) || [];
 
   const selectMeshs = useMemo(() => {
@@ -209,7 +238,7 @@ const Baseball = ({ data = dummy }) => {
 
   return (
     <>
-      <Line points={linePoints} color={"#0095d3"} lineWidth={30} />
+      {/* <Line points={linePoints} color={"#0095d3"} lineWidth={30} /> */}
 
       <directionalLight
         ref={refMesh}
@@ -225,12 +254,21 @@ const Baseball = ({ data = dummy }) => {
         rotation={[0, 110 * (180 / Math.PI), 0]}>
         <cylinderGeometry args={[SZ_WIDTH, SZ_WIDTH, SZ_HEIGHT, 6, 1]} />
         <lineBasicMaterial
-          transparent
-          opacity={0.2}
           color={"black"}
           wireframe
+          transparent
+          opacity={0.3}
         />
       </mesh>
+
+      <mesh
+        position={[SZ_FRONT, 3, SZ_SIDE]}
+        rotation={[0, 110 * (180 / Math.PI), 0]}>
+        <cylinderGeometry args={[SZ_WIDTH, SZ_WIDTH, SZ_HEIGHT, 6, 1]} />
+
+        <meshStandardMaterial transparent opacity={0.5} color={"white"} />
+      </mesh>
+
       <primitive object={Ball.scene} />
       {selectMeshs}
       {!playing && (
