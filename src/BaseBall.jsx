@@ -51,7 +51,6 @@ const Baseball = ({ data = dummy }) => {
   const [count, setCount] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [points, setPoints] = useState(initialPoints);
-  const [previousTube, setPreviousTube] = useState(null);
   // 수식의 y축이 캔버스의 X축 수식의 Z축이 캔버스의 Y축 수식의X축이 캔버스의 Z축 [Y,Z,X] 형식으로 포지션 값 추가
 
   const dataPoints = useMemo(() => {
@@ -235,13 +234,9 @@ const Baseball = ({ data = dummy }) => {
         }
       } else {
         setTimeout(() => {
-          if (previousTube) {
-            scene.remove(previousTube);
-          }
           setCount(0);
           setPoints(initialPoints);
           setPlaying(false);
-          setPreviousTube(null);
           Ball.scene.position.x = basePosition[0];
           Ball.scene.position.y = basePosition[1];
           Ball.scene.position.z = basePosition[2];
@@ -258,7 +253,6 @@ const Baseball = ({ data = dummy }) => {
   const SZ_HEIGHT = useMemo(() => {
     return dataRow.TOP_SZ - dataRow.BOTTOM_SZ;
   }, [dataRow]);
-  const curveRef = useRef();
   useEffect(() => {
     Ball.scene.position.x = basePosition[0];
     Ball.scene.position.y = basePosition[1];
@@ -269,7 +263,11 @@ const Baseball = ({ data = dummy }) => {
     Ball.scene.scale.z = 0.01;
     Ball.scene.receiveShadow = false;
     Ball.scene.castShadow = true;
-  }, [Ball.scene, curveRef, basePosition]);
+  }, [Ball.scene, basePosition]);
+
+  useEffect(() => {
+    setPoints(initialPoints);
+  }, [initialPoints]);
 
   useEffect(() => {
     const keyEvent = e => {
@@ -298,7 +296,7 @@ const Baseball = ({ data = dummy }) => {
     <>
       {/* 애니메이션 튜브 */}
       <Tube args={[tubePath, points.length, 0.8, 10, false]}>
-        <meshStandardMaterial
+        <meshBasicMaterial
           color={"white"}
           opacity={0.5}
           wireframe

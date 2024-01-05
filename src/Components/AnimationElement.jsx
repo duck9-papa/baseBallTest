@@ -211,6 +211,7 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
   const { camera } = useThree();
 
   const [rallyIndex, setRallyIndex] = useState(0);
+
   const VolleyBall = useGLTF("/models/ball.glb");
 
   useFrame((state, delta) => {

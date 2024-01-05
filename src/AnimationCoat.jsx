@@ -1,15 +1,7 @@
 import { OrbitControls, useGLTF } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
-import * as THREE from "three";
+import { useEffect } from "react";
 
 const AnimationCoat = ({ position = [10, 0, -20] }) => {
-  const refMesh = useRef();
-
-  //   useFrame((state, delta) => {
-  //     refMesh.current.rotation.z += delta;
-  //   });
-
   const Court = useGLTF("/models/volleyball.glb");
   useEffect(() => {
     Court.scene.position.x = position[0];
@@ -23,7 +15,6 @@ const AnimationCoat = ({ position = [10, 0, -20] }) => {
       <directionalLight position={[2, 10, 2]} />
       <directionalLight position={[-2, -2, -2]} />
 
-      {/* <axesHelper scale={10} /> */}
       <primitive object={Court.scene} />
       <OrbitControls />
     </>
