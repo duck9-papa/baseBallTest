@@ -50,10 +50,11 @@ const MyElement3D = () => {
           />
         </mesh>
       ))}
+
       {dummyHeatmap.map((item, index) => (
         <mesh
           position={item.position[1]}
-          key={index}
+          key={`resultKey${index}`}
           onClick={() => setSelect(index === select ? null : index)}>
           <capsuleGeometry args={[0.5, 0, 16, 32]} />
 

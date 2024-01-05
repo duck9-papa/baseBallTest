@@ -21,9 +21,8 @@ const Baseball = ({ data = dummy }) => {
 
   //
 
-  const refMesh = useRef();
-  const cylinderRef = useRef();
   const [select, setSelect] = useState(1);
+  const { camera, scene } = useThree();
 
   const dataRow = useMemo(() => {
     return data[select - 1];
@@ -33,57 +32,106 @@ const Baseball = ({ data = dummy }) => {
     [dataRow]
   );
 
-  const initialPoints = [
-    new THREE.Vector3(basePosition[0], basePosition[1] + 0.5, basePosition[2]),
-    new THREE.Vector3(basePosition[0], basePosition[1] + 0.5, basePosition[2]),
-  ];
+  const initialPoints = useMemo(
+    () => [
+      new THREE.Vector3(
+        basePosition[0],
+        basePosition[1] + 0.5,
+        basePosition[2]
+      ),
+      new THREE.Vector3(
+        basePosition[0],
+        basePosition[1] + 0.5,
+        basePosition[2]
+      ),
+    ],
+    [basePosition]
+  );
 
   const [count, setCount] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [points, setPoints] = useState(initialPoints);
   const [previousTube, setPreviousTube] = useState(null);
   // 수식의 y축이 캔버스의 X축 수식의 Z축이 캔버스의 Y축 수식의X축이 캔버스의 Z축 [Y,Z,X] 형식으로 포지션 값 추가
+
   const dataPoints = useMemo(() => {
     let arr = [];
+
     for (let i = 50; i >= 0; i--) {
       const elapsedTime = TimeCalculator(dataRow, i);
 
+      // speed = feet/s
       const xSpeed = VCalculator(dataRow.VX0, dataRow.AX, elapsedTime);
       const ySpeed = VCalculator(dataRow.VY0, dataRow.AY, elapsedTime);
       const zSpeed = VCalculator(dataRow.VZ0, dataRow.AZ, elapsedTime);
 
+      // value = feet
       const xValue = dataRow.X0 + xSpeed * elapsedTime;
-      const yValue = dataRow.Y0 + ySpeed * elapsedTime;
       const zValue = dataRow.Z0 + zSpeed * elapsedTime;
-      if (i > 30) {
-        console.log(i, dataRow.Z0, zSpeed * elapsedTime, zValue);
-      }
-      arr.push([i, zValue, xValue]);
+      const totalSpeed = Math.sqrt(
+        Math.pow(xSpeed, 2) + Math.pow(ySpeed, 2) + Math.pow(zSpeed, 2)
+      );
+      arr.push({ position: [i, zValue, xValue], speed: totalSpeed });
     }
     return arr;
   }, [dataRow, TimeCalculator]);
-  // console.log(dataPoints, dataRow);
-  const { targetX, targetY, targetZ, SZ_WIDTH, SZ_FRONT, SZ_SIDE, BALL_SPEED } =
-    useControls({
-      targetX: { value: 0, max: 20, min: -20, step: 0.01 },
-      targetY: { value: 5, max: 20, min: -20, step: 0.01 },
-      targetZ: { value: 0, max: 20, min: -20, step: 0.01 },
-      SZ_WIDTH: { value: 1.8, max: 3, min: 0.5, step: 0.01 },
-      SZ_FRONT: { value: 0, max: 3, min: -3, step: 0.01 },
-      SZ_SIDE: { value: 0, max: 3, min: -3, step: 0.01 },
-      BALL_SPEED: { value: 100, max: 150, min: 1, step: 1 },
-    });
+
+  const maxTime = useMemo(
+    () =>
+      TimeCalculator(
+        dataRow,
+        dataPoints?.[dataPoints?.length - 1]?.position[0]
+      ),
+    [dataRow, dataPoints, TimeCalculator]
+  );
+
+  const {
+    targetX,
+    targetY,
+    targetZ,
+    SZ_WIDTH,
+    SZ_FRONT,
+    SZ_SIDE,
+    BALL_SPEED,
+    // ELAPSEDTIME,
+  } = useControls({
+    targetX: { value: 0, max: 20, min: -20, step: 0.01 },
+    targetY: { value: 5, max: 20, min: -20, step: 0.01 },
+    targetZ: { value: 0, max: 20, min: -20, step: 0.01 },
+    SZ_WIDTH: { value: 1.8, max: 3, min: 0.5, step: 0.01 },
+    SZ_FRONT: { value: 0, max: 3, min: -3, step: 0.01 },
+    SZ_SIDE: { value: 0, max: 3, min: -3, step: 0.01 },
+    BALL_SPEED: { value: 10, max: 15, min: 0, step: 0.01 },
+    // ELAPSEDTIME: { value: 0, max: maxTime + 0.02, min: 0, step: 0.01 },
+  });
+
+  // const timePosition = useMemo(() => {
+  //   const xSpeed = VCalculator(dataRow.VX0, dataRow.AX, ELAPSEDTIME);
+  //   const ySpeed = VCalculator(dataRow.VY0, dataRow.AY, ELAPSEDTIME);
+  //   const zSpeed = VCalculator(dataRow.VZ0, dataRow.AZ, ELAPSEDTIME);
+
+  //   // value = feet
+  //   const xValue = dataRow.X0 + xSpeed * ELAPSEDTIME;
+  //   const yValue = dataRow.Y0 + ySpeed * ELAPSEDTIME;
+  //   const zValue = dataRow.Z0 + zSpeed * ELAPSEDTIME;
+  //   return [yValue, zValue, xValue];
+  // }, [dataRow, ELAPSEDTIME]);
+
+  const tubePath = useMemo(() => {
+    return new THREE.CatmullRomCurve3(points);
+  }, [points]);
 
   const Ball = useGLTF("/models/baseball.glb");
-
   useFrame((_, delta) => {
     camera.lookAt(targetX, targetY, targetZ);
 
-    Ball.scene.rotateY(delta * (playing ? 6 : 2));
+    Ball.scene.rotateY(delta * (playing ? 12 : 2));
+
     if (playing) {
       if (dataPoints[count + 1]) {
-        const [currentX, currentY, currentZ] = dataPoints[count];
-        const [nextX, nextY, nextZ] = dataPoints[count + 1];
+        const [currentX, currentY, currentZ] = dataPoints[count].position;
+        const [nextX, nextY, nextZ] = dataPoints[count + 1].position;
+        const sectionSpeed = dataPoints[count].speed / 10;
 
         const maxima = Math.max(
           ...[
@@ -95,20 +143,31 @@ const Baseball = ({ data = dummy }) => {
         const xCheck = nextX - currentX >= 0;
         const yCheck = nextY - currentY >= 0;
         const zCheck = nextZ - currentZ >= 0;
-        // console.log(xCheck, yCheck, zCheck);
         const xCoefficient = Math.abs(nextX - currentX) / maxima || 0;
         const yCoefficient = Math.abs(nextY - currentY) / maxima || 0;
         const zCoefficient = Math.abs(nextZ - currentZ) / maxima || 0;
 
         let xValue =
           Ball.scene.position.x +
-          Number(`${!xCheck ? "-" : "+"}${delta * BALL_SPEED * xCoefficient}`);
+          Number(
+            `${!xCheck ? "-" : "+"}${
+              delta * BALL_SPEED * sectionSpeed * xCoefficient
+            }`
+          );
         let yValue =
           Ball.scene.position.y +
-          Number(`${!yCheck ? "-" : "+"}${delta * BALL_SPEED * yCoefficient}`);
+          Number(
+            `${!yCheck ? "-" : "+"}${
+              delta * BALL_SPEED * sectionSpeed * yCoefficient
+            }`
+          );
         let zValue =
           Ball.scene.position.z +
-          Number(`${!zCheck ? "-" : "+"}${delta * BALL_SPEED * zCoefficient}`);
+          Number(
+            `${!zCheck ? "-" : "+"}${
+              delta * BALL_SPEED * sectionSpeed * zCoefficient
+            }`
+          );
 
         const xPosition =
           (xCheck && xValue >= nextX) || (!xCheck && xValue <= nextX)
@@ -131,33 +190,39 @@ const Baseball = ({ data = dummy }) => {
               (!yCheck && yPosition <= nextY)) &&
             ((zCheck && zPosition >= nextZ) || (!zCheck && zPosition <= nextZ)))
         ) {
-          setCount(pre => pre + 1);
+          setCount(pre => {
+            console.timeEnd(pre);
+            console.log(sectionSpeed);
+
+            console.time(pre + 1);
+            return pre + 1;
+          });
           setPoints(pre => {
             const value = [
               ...pre,
               new THREE.Vector3(nextX, nextY + 0.5, nextZ),
             ];
-            if (previousTube) {
-              scene.remove(previousTube);
-            }
+            // if (previousTube) {
+            //   scene.remove(previousTube);
+            // }
 
-            const path = new THREE.CatmullRomCurve3(value);
-            const tubeGeometry = new THREE.TubeGeometry(
-              path,
-              value.length,
-              0.8,
-              10,
-              false
-            );
-            const material = new THREE.MeshStandardMaterial({
-              color: "white",
-              transparent: true,
-              opacity: 0.5,
-              wireframe: true,
-            });
-            const mesh = new THREE.Mesh(tubeGeometry, material);
-            scene.add(mesh);
-            setPreviousTube(mesh);
+            // const path = new THREE.CatmullRomCurve3(value);
+            // const tubeGeometry = new THREE.TubeGeometry(
+            //   path,
+            //   value.length,
+            //   0.8,
+            //   10,
+            //   false
+            // );
+            // const material = new THREE.MeshStandardMaterial({
+            //   color: "white",
+            //   transparent: true,
+            //   opacity: 0.5,
+            //   wireframe: true,
+            // });
+            // const mesh = new THREE.Mesh(tubeGeometry, material);
+            // scene.add(mesh);
+            // setPreviousTube(mesh);
             return value;
           });
           Ball.scene.position.x = nextX;
@@ -183,9 +248,13 @@ const Baseball = ({ data = dummy }) => {
         }, 300);
       }
     }
+    // else {
+    //   Ball.scene.position.x = timePosition[0];
+    //   Ball.scene.position.y = timePosition[1];
+    //   Ball.scene.position.z = timePosition[2];
+    // }
   });
 
-  const { camera, scene } = useThree();
   const SZ_HEIGHT = useMemo(() => {
     return dataRow.TOP_SZ - dataRow.BOTTOM_SZ;
   }, [dataRow]);
@@ -204,22 +273,19 @@ const Baseball = ({ data = dummy }) => {
 
   useEffect(() => {
     const keyEvent = e => {
-      switch (e.code) {
-        case "ArrowRight":
-          if (!playing) {
+      if (!playing) {
+        switch (e.code) {
+          case "ArrowRight":
             setSelect(pre => (pre === data.length ? 1 : pre + 1));
-          }
-
-          break;
-        case "ArrowLeft":
-          if (!playing) {
+            break;
+          case "ArrowLeft":
             setSelect(pre => (pre === 1 ? data.length : pre - 1));
-          }
-          break;
-        case "Space":
-          if (!playing) {
+            break;
+          case "Space":
             setPlaying(true);
-          }
+            break;
+          // no defau}lt
+        }
       }
     };
 
@@ -230,17 +296,24 @@ const Baseball = ({ data = dummy }) => {
 
   return (
     <>
-      {/* <Line points={linePoints} color={"#0095d3"} lineWidth={30} /> */}
+      {/* 애니메이션 튜브 */}
+      <Tube args={[tubePath, points.length, 0.8, 10, false]}>
+        <meshStandardMaterial
+          color={"white"}
+          opacity={0.5}
+          wireframe
+          transparent
+        />
+      </Tube>
 
       <directionalLight
-        ref={refMesh}
         intensity={1}
         position={[40, 10, 0]}
         target-position={[40, 5, 0]}
       />
       <ambientLight intensity={2} />
 
-      <mesh ref={cylinderRef} position={[SZ_FRONT, 3, SZ_SIDE]}>
+      <mesh position={[SZ_FRONT, 3, SZ_SIDE]}>
         <boxGeometry args={[SZ_WIDTH, SZ_HEIGHT, SZ_WIDTH]} />
         <lineBasicMaterial
           color={"black"}
@@ -283,7 +356,6 @@ const Baseball = ({ data = dummy }) => {
           }
         }}>
         <meshBasicMaterial color={"black"} />
-
         {">"}
       </Text>
       {!playing && (

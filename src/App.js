@@ -183,8 +183,6 @@ const App = () => {
           border: "1px solid black",
         }}>
         <Canvas
-          shadows
-          frameloop="demand"
           camera={{
             fov: 60,
             far: 100,

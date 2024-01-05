@@ -1,17 +1,15 @@
 import { OrbitControls } from "@react-three/drei";
-import { useRef } from "react";
 
 const Coat3D = ({ position = [10, 0, -20] }) => {
-  const refMesh = useRef();
-
   return (
     <>
-      <directionalLight position={[2, 10, 2]} />
       <directionalLight position={[-2, -2, -2]} />
 
+      <directionalLight position={[2, 10, 2]} />
+
       <OrbitControls />
-      <mesh ref={refMesh} scale={[20, 1, 40]} position={position}>
-        <boxGeometry />
+      <mesh position={position}>
+        <boxGeometry args={[20, 1, 40]} />
         <meshStandardMaterial color="orange" />
       </mesh>
     </>

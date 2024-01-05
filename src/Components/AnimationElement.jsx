@@ -303,8 +303,6 @@ const MyElement3D = ({ rally, playing, setPlaying }) => {
   };
 
   useEffect(() => {
-    VolleyBall.scene.traverse(item => {});
-
     VolleyBall.scene.scale.x = 0.02;
     VolleyBall.scene.scale.y = 0.02;
     VolleyBall.scene.scale.z = 0.02;
